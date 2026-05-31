@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>e& Governance — Talent Pool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<style>
+:root{
+  --purple:#4B0082;
+  --purple-2:#6A0DAD;
+  --purple-deep:#2B004D;
+  --gold:#C9A84C;
+  --gold-2:#E6C66A;
+  --ink:#0E0B14;
+  --ink-2:#1A1422;
+  --line:#E6E1EC;
+  --line-strong:#C8BFD4;
+  --bg:#F6F4F9;
+  --surface:#FFFFFF;
+  --muted:#6B6577;
+  --green:#16794C;
+  --green-bg:#E3F3EC;
+  --red:#B42318;
+  --red-bg:#FBE7E4;
+  --amber:#8A5A00;
+  --amber-bg:#FBEFD0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,h5,.font-display{font-family:'Sora',sans-serif;letter-spacing:-0.01em;font-weight:700;color:var(--ink)}
+button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select,textarea{font-family:inherit;font-size:14px;color:var(--ink)}
+a{color:inherit;text-decoration:none}
+
+/* Layout */
+.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+.sidebar{background:var(--purple-deep);color:#fff;display:flex;flex-direction:column;border-right:1px solid #000}
+.brand{display:flex;align-items:center;gap:10px;padding:22px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand-mark{width:38px;height:38px;background:var(--gold);color:var(--purple-deep);display:grid;place-items:center;font-family:'Sora';font-weight:800;font-size:20px}
+.brand-text{font-family:'Sora';font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#fff;line-height:1.2}
+.brand-text small{display:block;color:var(--gold-2);font-size:10px;letter-spacing:.18em;font-weight:500;margin-top:3px}
+.nav{padding:14px 10px;flex:1;overflow:auto}
+.nav-section{font-size:10px;letter-spacing:.18em;color:rgba(255,255,255,.45);padding:14px 12px 6px;text-transform:uppercase;font-weight:600}
+.nav button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:10px 12px;color:rgba(255,255,255,.78);font-size:13.5px;font-weight:500;border-left:2px solid transparent;transition:all .15s}
+.nav button:hover{color:#fff;background:rgba(255,255,255,.04)}
+.nav button.active{color:#fff;background:linear-gradient(90deg,rgba(201,168,76,.18),transparent);border-left-color:var(--gold)}
+.nav svg{width:17px;height:17px;flex-shrink:0;stroke-width:1.8}
+.sidebar-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.05em}
+
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 28px;gap:24px;position:sticky;top:0;z-index:20}
+.topbar .page-title{font-family:'Sora';font-weight:600;font-size:15px}
+.topbar .crumb{color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-right:8px}
+.topbar .spacer{flex:1}
+.user-chip{display:flex;align-items:center;gap:10px;padding:6px 10px 6px 6px;border:1px solid var(--line);background:#fff}
+.user-avatar{width:30px;height:30px;background:var(--purple);color:#fff;display:grid;place-items:center;font-weight:700;font-family:'Sora';font-size:12px}
+.user-meta{line-height:1.15}
+.user-meta .nm{font-weight:600;font-size:13px}
+.user-meta .rl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.role-badge{font-size:10px;font-weight:700;letter-spacing:.1em;padding:3px 7px;background:var(--gold);color:var(--purple-deep);text-transform:uppercase}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;font-weight:600;font-size:13px;border:1px solid var(--line-strong);background:#fff;color:var(--ink);transition:all .15s}
+.btn:hover{border-color:var(--purple);color:var(--purple)}
+.btn-primary{background:var(--purple);color:#fff;border-color:var(--purple)}
+.btn-primary:hover{background:var(--purple-2);border-color:var(--purple-2);color:#fff}
+.btn-gold{background:var(--gold);color:var(--purple-deep);border-color:var(--gold)}
+.btn-gold:hover{background:var(--gold-2);border-color:var(--gold-2);color:var(--purple-deep)}
+.btn-danger{color:var(--red);border-color:#E8C0BB}
+.btn-danger:hover{background:var(--red);color:#fff;border-color:var(--red)}
+.btn-sm{padding:6px 10px;font-size:12px}
+.btn svg{width:15px;height:15px;stroke-width:2}
+
+.content{padding:24px 28px 60px;max-width:100%}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;gap:18px;flex-wrap:wrap}
+.page-head h1{font-size:24px}
+.page-head .sub{color:var(--muted);font-size:13px;margin-top:4px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* KPI cards */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+.kpi{background:#fff;border:1px solid var(--line);padding:18px 18px 16px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--purple)}
+.kpi.gold::before{background:var(--gold)}
+.kpi.green::before{background:var(--green)}
+.kpi.ink::before{background:var(--ink)}
+.kpi .label{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.kpi .value{font-family:'Sora';font-weight:700;font-size:30px;margin-top:8px;letter-spacing:-.02em}
+.kpi .meta{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* Cards / charts */
+.grid-charts{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-bottom:22px}
+.card{background:#fff;border:1px solid var(--line);padding:18px}
+.card h3{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.card h3 .hint{font-size:10.5px;color:var(--muted);letter-spacing:.1em;font-weight:500}
+.col-4{grid-column:span 4}
+.col-6{grid-column:span 6}
+.col-8{grid-column:span 8}
+.col-12{grid-column:span 12}
+.chart-wrap{position:relative;height:260px}
+.chart-wrap.tall{height:300px}
+
+/* Table */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:14px;background:#fff;border:1px solid var(--line);border-bottom:0}
+.search{flex:1;min-width:240px;position:relative}
+.search input{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--line-strong);background:#fff;outline:none}
+.search input:focus{border-color:var(--purple)}
+.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--muted)}
+.select{padding:9px 10px;border:1px solid var(--line-strong);background:#fff;font-size:13px;min-width:140px}
+.select:focus{outline:none;border-color:var(--purple)}
+
+.table-wrap{background:#fff;border:1px solid var(--line);overflow-x:auto}
+table.data{width:100%;border-collapse:collapse;font-size:13px;min-width:1000px}
+table.data thead th{background:#FAF8FC;color:var(--ink-2);text-align:left;padding:11px 12px;font-weight:600;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
+table.data thead th:hover{color:var(--purple)}
+table.data tbody td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.data tbody tr{cursor:pointer;transition:background .12s}
+table.data tbody tr:hover{background:#FBF9FE}
+table.data tbody tr:last-child td{border-bottom:0}
+.num{font-variant-numeric:tabular-nums;font-weight:600}
+.badge{display:inline-block;padding:3px 8px;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:1px solid}
+.badge.pass{color:var(--green);background:var(--green-bg);border-color:#B6E0CB}
+.badge.fail{color:var(--red);background:var(--red-bg);border-color:#F2C8C2}
+.badge.hold{color:var(--amber);background:var(--amber-bg);border-color:#EFD79A}
+.badge.neutral{color:var(--muted);background:#F1EDF6;border-color:var(--line-strong)}
+
+.pager{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#fff;border:1px solid var(--line);border-top:0;font-size:13px;color:var(--muted)}
+.pager .pages{display:flex;gap:4px}
+.pager .pages button{border:1px solid var(--line-strong);padding:6px 10px;background:#fff;font-weight:600;font-size:12px;min-width:32px}
+.pager .pages button.active{background:var(--purple);color:#fff;border-color:var(--purple)}
+.pager .pages button:disabled{opacity:.4;cursor:not-allowed}
+
+/* Empty state */
+.empty{padding:60px 30px;text-align:center;background:#fff;border:2px dashed var(--line-strong)}
+.empty .icon{width:64px;height:64px;margin:0 auto 16px;border:2px dashed var(--purple);display:grid;place-items:center;color:var(--purple);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:.7}}
+.empty h3{font-size:18px;margin-bottom:6px}
+.empty p{color:var(--muted);margin-bottom:18px}
+
+/* Login */
+.login-wrap{min-height:100vh;background:radial-gradient(circle at 30% 20%,#3A0066 0%,#1A0030 60%,#0A0018 100%);display:grid;place-items:center;padding:20px;position:relative;overflow:hidden}
+.login-wrap::before,.login-wrap::after{content:"";position:absolute;border:1px solid rgba(201,168,76,.15)}
+.login-wrap::before{width:600px;height:600px;top:-200px;right:-200px;transform:rotate(15deg)}
+.login-wrap::after{width:400px;height:400px;bottom:-150px;left:-150px;transform:rotate(-20deg)}
+.login-card{position:relative;width:100%;max-width:420px;background:#fff;padding:40px 38px}
+.login-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold)}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.login-logo .m{width:48px;height:48px;background:var(--purple);color:var(--gold);display:grid;place-items:center;font-family:'Sora';font-weight:800;font-size:24px}
+.login-logo .t{font-family:'Sora';font-weight:700;font-size:14px;letter-spacing:.14em;text-transform:uppercase;line-height:1.3}
+.login-logo .t small{display:block;font-size:10px;letter-spacing:.18em;color:var(--muted);font-weight:500;margin-top:3px}
+.login-card h1{font-size:22px;margin-bottom:6px}
+.login-card .sub{color:var(--muted);margin-bottom:24px;font-size:13.5px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px}
+.field input{width:100%;padding:11px 13px;border:1px solid var(--line-strong);background:#fff;outline:none;font-size:14px}
+.field input:focus{border-color:var(--purple)}
+.login-card .btn-primary{width:100%;padding:13px;justify-content:center;margin-top:8px}
+.login-foot{text-align:center;margin-top:18px;font-size:11px;color:var(--muted);letter-spacing:.08em}
+.err{background:var(--red-bg);color:var(--red);padding:9px 12px;font-size:12.5px;border:1px solid #F2C8C2;margin-bottom:12px}
+
+/* Slide panel */
+.panel-back{position:fixed;inset:0;background:rgba(14,11,20,.5);z-index:50;opacity:0;pointer-events:none;transition:opacity .2s}
+.panel-back.open{opacity:1;pointer-events:auto}
+.panel{position:fixed;top:0;right:0;width:460px;max-width:96vw;height:100vh;background:#fff;z-index:51;transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column}
+.panel.open{transform:translateX(0)}
+.panel-head{padding:20px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start}
+.panel-head h2{font-size:18px}
+.panel-head .sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+.panel-body{padding:20px 22px;overflow:auto;flex:1}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:10px 14px;font-size:13px}
+.kv dt{color:var(--muted);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;padding-top:2px}
+.kv dd{font-weight:500;word-break:break-word}
+.panel .close{padding:6px;border:1px solid var(--line)}
+
+/* Modal */
+.modal-back{position:fixed;inset:0;background:rgba(14,11,20,.55);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-back.open{display:flex}
+.modal{background:#fff;width:100%;max-width:480px;padding:26px}
+.modal h2{font-size:18px;margin-bottom:14px}
+.modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+
+/* Toast */
+.toasts{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:8px;z-index:200}
+.toast{background:var(--ink);color:#fff;padding:12px 16px;font-size:13px;border-left:3px solid var(--gold);min-width:240px;animation:slidein .25s ease}
+.toast.ok{border-left-color:var(--green)}
+.toast.err{border-left-color:var(--red)}
+@keyframes slidein{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* Upload zone */
+.upload-zone{border:2px dashed var(--line-strong);padding:34px;text-align:center;background:#fff;transition:all .2s;cursor:pointer}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--purple);background:#FBF9FE}
+.upload-zone .ic{width:54px;height:54px;margin:0 auto 12px;background:var(--purple);color:#fff;display:grid;place-items:center}
+.upload-zone h3{margin-bottom:6px;font-size:16px}
+.upload-zone p{color:var(--muted);font-size:13px}
+
+/* Settings */
+.set-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media (max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}.col-4,.col-6,.col-8{grid-column:span 12}.set-grid{grid-template-columns:1fr}}
+@media (max-width:760px){.app{grid-template-columns:1fr}.sidebar{position:fixed;top:0;bottom:0;left:0;width:248px;z-index:80;transform:translateX(-100%);transition:transform .25s}.sidebar.open{transform:translateX(0)}.topbar .menu-btn{display:inline-flex}}
+.menu-btn{display:none;padding:7px;border:1px solid var(--line)}
+@media (max-width:760px){.menu-btn{display:inline-flex}}
+
+/* Misc */
+.divider{height:1px;background:var(--line);margin:18px 0}
+.tag{font-size:11px;background:#F1EDF6;color:var(--purple);padding:3px 7px;font-weight:600;letter-spacing:.04em}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="toasts" id="toasts"></div>
+
+<script>
+/* ============================================================
+   e& Governance — Talent Pool (single-file app)
+   ============================================================ */
+const NS = 'eand_talent_';
+const LS = {
+  get:(k,d)=>{try{const v=localStorage.getItem(NS+k);return v?JSON.parse(v):d}catch(e){return d}},
+  set:(k,v)=>localStorage.setItem(NS+k,JSON.stringify(v)),
+  del:(k)=>localStorage.removeItem(NS+k),
+};
+const SS = {
+  get:(k,d)=>{try{const v=sessionStorage.getItem(NS+k);return v?JSON.parse(v):d}catch(e){return d}},
+  set:(k,v)=>sessionStorage.setItem(NS+k,JSON.stringify(v)),
+  del:(k)=>sessionStorage.removeItem(NS+k),
+};
+
+/* ---------- Seed admin ---------- */
+const ADMIN = { username:'cmohammad', password:'123786', name:'C. Mohammad', role:'admin' };
+
+/* ---------- State ---------- */
+const state = {
+  user: SS.get('session', null),
+  page: 'dashboard',
+  candidates: LS.get('candidates', []),
+  users: LS.get('users', []),
+  settings: LS.get('settings', { portalName:'e& Governance — Talent Pool', logo:null }),
+  filters: { q:'', dept:'', status:'', position:'', nationality:'' },
+  sort: { col:'_idx', dir:'asc' },
+  pageNum: 1,
+  selected: null,
+  charts: {},
+};
+
+/* ---------- Toast ---------- */
+function toast(msg, type=''){
+  const t=document.createElement('div');
+  t.className='toast '+(type||'');
+  t.textContent=msg;
+  document.getElementById('toasts').appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300)},3200);
+}
+
+/* ---------- Helpers ---------- */
+const $ = (s,r=document)=>r.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = ()=>Math.random().toString(36).slice(2,10);
+
+function fmtDate(v){
+  if(v===null||v===undefined||v==='') return '';
+  if(typeof v==='number'){ // excel serial
+    const d=new Date(Math.round((v-25569)*86400*1000));
+    if(!isNaN(d)) return d.toISOString().slice(0,10);
+  }
+  const d=new Date(v); if(!isNaN(d)) return d.toISOString().slice(0,10);
+  return String(v);
+}
+function parseScore(v){
+  if(v===null||v===undefined||v==='') return null;
+  const n=parseFloat(String(v).replace(/[^\d.\-]/g,''));
+  return isNaN(n)?null:n;
+}
+function normStatus(v){
+  const s=String(v||'').toLowerCase();
+  if(/pass|select|recommend|approve|short/.test(s)) return 'Passed';
+  if(/fail|reject|not/.test(s)) return 'Failed';
+  if(/hold|pend|review|wait/.test(s)) return 'On Hold';
+  return v?String(v):'On Hold';
+}
+
+/* ---------- Auth ---------- */
+function login(username,password){
+  if(username===ADMIN.username && password===ADMIN.password){
+    const u={username:ADMIN.username,name:ADMIN.name,role:'admin'};
+    SS.set('session',u); state.user=u; return true;
+  }
+  const u=state.users.find(x=>x.username===username && x.password===password && x.active);
+  if(u){ const s={username:u.username,name:u.name,role:u.role}; SS.set('session',s); state.user=s; return true; }
+  return false;
+}
+function logout(){ SS.del('session'); state.user=null; render(); }
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render(){
+  // destroy any existing charts when re-rendering pages
+  Object.values(state.charts).forEach(c=>{try{c.destroy()}catch(e){}});
+  state.charts={};
+  const root=document.getElementById('root');
+  if(!state.user){ root.innerHTML=renderLogin(); bindLogin(); return; }
+  root.innerHTML = renderShell();
+  bindShell();
+  renderPage();
+}
+
+/* ---------- Login ---------- */
+function renderLogin(){
+  return `
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="m">e&</div>
+        <div class="t">${esc(state.settings.portalName.split('—')[0]||'e& Governance')}
+          <small>Talent Pool · Internal Portal</small>
+        </div>
+      </div>
+      <h1>Secure Sign-In</h1>
+      <p class="sub">Authorised personnel only. All sessions are logged.</p>
+      <div id="loginErr"></div>
+      <form id="loginForm">
+        <div class="field"><label>Username</label><input id="lu" autocomplete="username" required /></div>
+        <div class="field"><label>Password</label><input id="lp" type="password" autocomplete="current-password" required /></div>
+        <button class="btn btn-primary" type="submit">Sign In →</button>
+      </form>
+      <div class="login-foot">© ${new Date().getFullYear()} e& Group · Governance Team</div>
+    </div>
+  </div>`;
+}
+function bindLogin(){
+  $('#loginForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    const ok=login($('#lu').value.trim(),$('#lp').value);
+    if(ok){ render(); } else {
+      $('#loginErr').innerHTML='<div class="err">Invalid credentials or inactive account.</div>';
+    }
+  });
+}
+
+/* ---------- Shell ---------- */
+function navItem(id,label,svg,adminOnly=false){
+  if(adminOnly && state.user.role!=='admin') return '';
+  return `<button data-nav="${id}" class="${state.page===id?'active':''}">${svg}<span>${label}</span></button>`;
+}
+const I = {
+  dash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
+  pool:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="8" r="3"/><path d="M3 21c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="17" cy="7" r="2.5"/><path d="M14.5 14c2.6.5 4.5 2.7 4.5 5.5"/></svg>',
+  upload:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 16V4M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>',
+  users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="8" cy="8" r="3.2"/><path d="M2 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.5 1.6-4.5 4-5"/></svg>',
+  set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  out:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
+  menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
+};
+
+function renderShell(){
+  const u=state.user;
+  const titles={dashboard:'Dashboard',pool:'Talent Pool',upload:'Upload Candidates',users:'User Management',settings:'Settings'};
+  return `
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        ${state.settings.logo
+          ? `<img src="${state.settings.logo}" alt="logo" style="width:38px;height:38px;object-fit:contain;background:#fff;padding:2px"/>`
+          : `<div class="brand-mark">e&</div>`}
+        <div class="brand-text">Governance<small>Talent Pool</small></div>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">Overview</div>
+        ${navItem('dashboard','Dashboard',I.dash)}
+        ${navItem('pool','Talent Pool',I.pool)}
+        <div class="nav-section">Administration</div>
+        ${navItem('upload','Upload Candidates',I.upload,true)}
+        ${navItem('users','User Management',I.users,true)}
+        ${navItem('settings','Settings',I.set,true)}
+      </nav>
+      <div class="sidebar-foot">v1.0 · ${state.candidates.length} records</div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <button class="menu-btn btn" id="menuBtn">${I.menu}</button>
+        <div><span class="crumb">e& / Governance</span><span class="page-title">${titles[state.page]||''}</span></div>
+        <div class="spacer"></div>
+        <div class="user-chip">
+          <div class="user-avatar">${esc((u.name||u.username).slice(0,2).toUpperCase())}</div>
+          <div class="user-meta"><div class="nm">${esc(u.name||u.username)}</div><div class="rl">${esc(u.role)}</div></div>
+          <span class="role-badge">${esc(u.role)}</span>
+        </div>
+        <button class="btn btn-sm" id="logoutBtn">${I.out}<span>Logout</span></button>
+      </div>
+      <div class="content" id="pageContent"></div>
+    </div>
+  </div>
+  <div class="panel-back" id="panelBack"></div>
+  <div class="panel" id="panel"></div>
+  <div class="modal-back" id="modal"></div>
+  `;
+}
+function bindShell(){
+  document.querySelectorAll('[data-nav]').forEach(b=>{
+    b.onclick=()=>{state.page=b.dataset.nav;state.selected=null;render();};
+  });
+  $('#logoutBtn').onclick=logout;
+  $('#menuBtn').onclick=()=>$('#sidebar').classList.toggle('open');
+  $('#panelBack').onclick=closePanel;
+}
+
+/* ---------- Pages ---------- */
+function renderPage(){
+  const el=$('#pageContent');
+  if(state.page==='dashboard') return renderDashboard(el);
+  if(state.page==='pool') return renderPool(el);
+  if(state.page==='upload') return renderUpload(el);
+  if(state.page==='users') return renderUsers(el);
+  if(state.page==='settings') return renderSettings(el);
+}
+
+/* ---------- Dashboard ---------- */
+function applyFilters(list){
+  const f=state.filters;
+  const q=f.q.toLowerCase().trim();
+  return list.filter(c=>{
+    if(f.dept && c.department!==f.dept) return false;
+    if(f.status && c.status!==f.status) return false;
+    if(f.position && c.position!==f.position) return false;
+    if(f.nationality && c.nationality!==f.nationality) return false;
+    if(q){
+      const hay=[c.name,c.position,c.department,c.interviewer,c.nationality,c.status,c.notes].map(x=>String(x||'').toLowerCase()).join(' ');
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function computeStats(list){
+  const total=list.length;
+  const passed=list.filter(c=>c.status==='Passed').length;
+  const depts=new Set(list.map(c=>c.department).filter(Boolean));
+  const scores=list.map(c=>c.score).filter(s=>typeof s==='number');
+  const avg=scores.length?(scores.reduce((a,b)=>a+b,0)/scores.length):0;
+  return {total,passed,passRate:total?Math.round(passed/total*100):0,depts:depts.size,avg:avg.toFixed(1)};
+}
+
+function renderDashboard(el){
+  const list=applyFilters(state.candidates);
+  const s=computeStats(list);
+  if(state.candidates.length===0){
+    el.innerHTML=`<div class="page-head"><div><h1>Dashboard</h1><div class="sub">Real-time analytics from your talent pool.</div></div></div>
+    <div class="empty">
+      <div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg></div>
+      <h3>No data yet</h3>
+      <p>Upload a candidate Excel file to begin populating the analytics dashboard.</p>
+      ${state.user.role==='admin'?'<button class="btn btn-primary" id="gotoUpload">Upload Excel File</button>':'<p style="font-size:12px">Contact your administrator to upload data.</p>'}
+    </div>`;
+    const g=$('#gotoUpload'); if(g) g.onclick=()=>{state.page='upload';render();};
+    return;
+  }
+  el.innerHTML=`
+  <div class="page-head">
+    <div><h1>Dashboard</h1><div class="sub">Live analytics across ${list.length.toLocaleString()} candidate${list.length===1?'':'s'}${list.length!==state.candidates.length?` (filtered from ${state.candidates.length})`:''}.</div></div>
+    <div class="actions">
+      <button class="btn" id="resetF">Reset Filters</button>
+      <button class="btn btn-primary" id="goPool">View Talent Pool →</button>
+    </div>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><div class="label">Total Candidates</div><div class="value">${s.total.toLocaleString()}</div><div class="meta">In active pool</div></div>
+    <div class="kpi green"><div class="label">Pass Rate</div><div class="value">${s.passRate}%</div><div class="meta">${s.passed} passed</div></div>
+    <div class="kpi gold"><div class="label">Departments</div><div class="value">${s.depts}</div><div class="meta">Unique represented</div></div>
+    <div class="kpi ink"><div class="label">Average Score</div><div class="value">${s.avg}</div><div class="meta">Across all interviews</div></div>
+  </div>
+  <div class="grid-charts">
+    <div class="card col-4"><h3>Status Distribution<span class="hint">${list.length} records</span></h3><div class="chart-wrap"><canvas id="cStatus"></canvas></div></div>
+    <div class="card col-8"><h3>Top Departments<span class="hint">By candidate count</span></h3><div class="chart-wrap"><canvas id="cDept"></canvas></div></div>
+    <div class="card col-8"><h3>Interviews Over Time<span class="hint">Monthly</span></h3><div class="chart-wrap"><canvas id="cTime"></canvas></div></div>
+    <div class="card col-4"><h3>Score Distribution<span class="hint">Buckets</span></h3><div class="chart-wrap"><canvas id="cScore"></canvas></div></div>
+    <div class="card col-4"><h3>Nationality Mix<span class="hint">Top 6</span></h3><div class="chart-wrap"><canvas id="cNat"></canvas></div></div>
+    <div class="card col-8"><h3>Positions Applied<span class="hint">Top 8</span></h3><div class="chart-wrap"><canvas id="cPos"></canvas></div></div>
+  </div>`;
+  $('#resetF').onclick=()=>{state.filters={q:'',dept:'',status:'',position:'',nationality:''};render();};
+  $('#goPool').onclick=()=>{state.page='pool';render();};
+  drawCharts(list);
+}
+
+function groupCount(arr,key){
+  const m=new Map();
+  arr.forEach(x=>{const k=x[key]||'Unspecified';m.set(k,(m.get(k)||0)+1);});
+  return [...m.entries()].sort((a,b)=>b[1]-a[1]);
+}
+
+const PURPLE='#4B0082',PURPLE2='#6A0DAD',GOLD='#C9A84C',GOLD2='#E6C66A',INK='#1A1422';
+const PALETTE=[PURPLE,GOLD,PURPLE2,GOLD2,'#8E4FBE','#A47B1F','#5B2A82','#D8B870'];
+
+function drawCharts(list){
+  Chart.defaults.font.family="'DM Sans',sans-serif";
+  Chart.defaults.font.size=11;
+  Chart.defaults.color='#4A4452';
+
+  // Status donut
+  const st=['Passed','Failed','On Hold'].map(s=>list.filter(c=>c.status===s).length);
+  state.charts.status=new Chart($('#cStatus'),{type:'doughnut',data:{labels:['Passed','Failed','On Hold'],datasets:[{data:st,backgroundColor:['#16794C','#B42318','#C9A84C'],borderWidth:0}]},options:{cutout:'62%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);const p=t?Math.round(c.parsed/t*100):0;return ` ${c.label}: ${c.parsed} (${p}%)`;}}}}}});
+
+  // Departments
+  const dep=groupCount(list,'department').slice(0,8);
+  state.charts.dept=new Chart($('#cDept'),{type:'bar',data:{labels:dep.map(d=>d[0]),datasets:[{data:dep.map(d=>d[1]),backgroundColor:GOLD,borderColor:'#A4861F',borderWidth:1}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#EEE9F2'}},y:{grid:{display:false}}}}});
+
+  // Time
+  const tm=new Map();
+  list.forEach(c=>{if(c.interviewDate){const d=new Date(c.interviewDate);if(!isNaN(d)){const k=d.toISOString().slice(0,7);tm.set(k,(tm.get(k)||0)+1);}}});
+  const tkeys=[...tm.keys()].sort();
+  state.charts.time=new Chart($('#cTime'),{type:'line',data:{labels:tkeys,datasets:[{data:tkeys.map(k=>tm.get(k)),borderColor:PURPLE,backgroundColor:'rgba(75,0,130,0.08)',fill:true,tension:.3,pointBackgroundColor:GOLD,pointBorderColor:PURPLE,pointRadius:4}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#EEE9F2'},beginAtZero:true,ticks:{precision:0}}}}});
+
+  // Score
+  const buckets=[0,0,0,0,0]; const labels=['0–2','2–4','4–6','6–8','8–10'];
+  list.forEach(c=>{if(typeof c.score==='number'){const i=Math.min(4,Math.max(0,Math.floor(c.score/2)));buckets[i]++;}});
+  state.charts.score=new Chart($('#cScore'),{type:'bar',data:{labels,datasets:[{data:buckets,backgroundColor:PURPLE,borderColor:PURPLE2,borderWidth:1}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#EEE9F2'},beginAtZero:true,ticks:{precision:0}}}}});
+
+  // Nationality
+  let nat=groupCount(list,'nationality');
+  const top=nat.slice(0,6); const other=nat.slice(6).reduce((a,b)=>a+b[1],0);
+  const nl=top.map(n=>n[0]).concat(other?['Other']:[]); const nd=top.map(n=>n[1]).concat(other?[other]:[]);
+  state.charts.nat=new Chart($('#cNat'),{type:'doughnut',data:{labels:nl,datasets:[{data:nd,backgroundColor:PALETTE,borderWidth:0}]},options:{cutout:'58%',plugins:{legend:{position:'bottom',labels:{boxWidth:10}}}}});
+
+  // Positions
+  const pos=groupCount(list,'position').slice(0,8);
+  state.charts.pos=new Chart($('#cPos'),{type:'bar',data:{labels:pos.map(p=>p[0]),datasets:[{data:pos.map(p=>p[1]),backgroundColor:PURPLE2,borderColor:PURPLE,borderWidth:1}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{maxRotation:35,minRotation:0}},y:{grid:{color:'#EEE9F2'},beginAtZero:true,ticks:{precision:0}}}}});
+}
+
+/* ---------- Talent Pool ---------- */
+function renderPool(el){
+  const list=applyFilters(state.candidates);
+  const sorted=[...list].sort((a,b)=>{
+    const {col,dir}=state.sort; const m=dir==='asc'?1:-1;
+    const av=a[col], bv=b[col];
+    if(av==null&&bv==null) return 0; if(av==null) return 1; if(bv==null) return -1;
+    if(typeof av==='number'&&typeof bv==='number') return (av-bv)*m;
+    return String(av).localeCompare(String(bv))*m;
+  });
+  const per=20;
+  const totalPages=Math.max(1,Math.ceil(sorted.length/per));
+  if(state.pageNum>totalPages) state.pageNum=1;
+  const start=(state.pageNum-1)*per;
+  const slice=sorted.slice(start,start+per);
+
+  const uniq=k=>[...new Set(state.candidates.map(c=>c[k]).filter(Boolean))].sort();
+  const depts=uniq('department'), positions=uniq('position'), nats=uniq('nationality');
+
+  el.innerHTML=`
+  <div class="page-head">
+    <div><h1>Talent Pool</h1><div class="sub">${list.length} of ${state.candidates.length} candidates · page ${state.pageNum} / ${totalPages}</div></div>
+    <div class="actions">
+      <button class="btn" id="exXlsx">${I.upload.replace('M12 16V4','M12 4v12').replace('M6 10l6-6 6 6','M6 14l6 6 6-6')}<span>Export Excel</span></button>
+      <button class="btn btn-gold" id="exPdf">Export PDF</button>
+    </div>
+  </div>
+  <div class="toolbar">
+    <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="qSearch" placeholder="Search by name, position, department, interviewer…" value="${esc(state.filters.q)}"/>
+    </div>
+    <select class="select" id="fDept"><option value="">All Departments</option>${depts.map(d=>`<option ${state.filters.dept===d?'selected':''}>${esc(d)}</option>`).join('')}</select>
+    <select class="select" id="fStatus"><option value="">All Status</option>${['Passed','Failed','On Hold'].map(s=>`<option ${state.filters.status===s?'selected':''}>${s}</option>`).join('')}</select>
+    <select class="select" id="fPos"><option value="">All Positions</option>${positions.map(p=>`<option ${state.filters.position===p?'selected':''}>${esc(p)}</option>`).join('')}</select>
+    <select class="select" id="fNat"><option value="">All Nationalities</option>${nats.map(n=>`<option ${state.filters.nationality===n?'selected':''}>${esc(n)}</option>`).join('')}</select>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr>
+        ${[['_idx','#'],['name','Name'],['position','Position'],['department','Department'],['interviewDate','Interview Date'],['score','Score'],['status','Status'],['nationality','Nationality'],['experience','Exp (Yrs)'],['interviewer','Interviewer']]
+          .map(([k,l])=>`<th data-sort="${k}">${l}${state.sort.col===k?(state.sort.dir==='asc'?' ▲':' ▼'):''}</th>`).join('')}
+      </tr></thead>
+      <tbody>
+        ${slice.length?slice.map((c,i)=>`
+          <tr data-id="${c.id}">
+            <td class="num">${start+i+1}</td>
+            <td><strong>${esc(c.name)}</strong></td>
+            <td>${esc(c.position)}</td>
+            <td>${esc(c.department)}</td>
+            <td class="num">${esc(c.interviewDate||'')}</td>
+            <td class="num">${c.score==null?'—':c.score}</td>
+            <td><span class="badge ${c.status==='Passed'?'pass':c.status==='Failed'?'fail':'hold'}">${esc(c.status)}</span></td>
+            <td>${esc(c.nationality||'—')}</td>
+            <td class="num">${c.experience==null?'—':c.experience}</td>
+            <td>${esc(c.interviewer||'—')}</td>
+          </tr>`).join(''):`<tr><td colspan="10" style="padding:40px;text-align:center;color:var(--muted)">No candidates match the current filters.</td></tr>`}
+      </tbody>
+    </table>
+  </div>
+  <div class="pager">
+    <div>Showing ${slice.length?start+1:0}–${start+slice.length} of ${sorted.length}</div>
+    <div class="pages">
+      <button id="pPrev" ${state.pageNum===1?'disabled':''}>‹</button>
+      ${pagerButtons(state.pageNum,totalPages)}
+      <button id="pNext" ${state.pageNum===totalPages?'disabled':''}>›</button>
+    </div>
+  </div>`;
+
+  $('#qSearch').addEventListener('input',e=>{state.filters.q=e.target.value;state.pageNum=1;renderPool(el);});
+  $('#fDept').onchange=e=>{state.filters.dept=e.target.value;state.pageNum=1;renderPool(el);};
+  $('#fStatus').onchange=e=>{state.filters.status=e.target.value;state.pageNum=1;renderPool(el);};
+  $('#fPos').onchange=e=>{state.filters.position=e.target.value;state.pageNum=1;renderPool(el);};
+  $('#fNat').onchange=e=>{state.filters.nationality=e.target.value;state.pageNum=1;renderPool(el);};
+  document.querySelectorAll('th[data-sort]').forEach(th=>{
+    th.onclick=()=>{const k=th.dataset.sort;if(state.sort.col===k)state.sort.dir=state.sort.dir==='asc'?'desc':'asc';else{state.sort.col=k;state.sort.dir='asc';}renderPool(el);};
+  });
+  document.querySelectorAll('tr[data-id]').forEach(tr=>{
+    tr.onclick=()=>openCandidate(tr.dataset.id);
+  });
+  $('#pPrev').onclick=()=>{state.pageNum=Math.max(1,state.pageNum-1);renderPool(el);};
+  $('#pNext').onclick=()=>{state.pageNum=Math.min(totalPages,state.pageNum+1);renderPool(el);};
+  document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{state.pageNum=+b.dataset.page;renderPool(el);});
+  $('#exXlsx').onclick=()=>exportXlsx(sorted);
+  $('#exPdf').onclick=()=>exportPdf(sorted);
+}
+function pagerButtons(cur,total){
+  const arr=[]; const window=2;
+  for(let i=1;i<=total;i++){
+    if(i===1||i===total||(i>=cur-window&&i<=cur+window)) arr.push(i);
+    else if(arr[arr.length-1]!=='…') arr.push('…');
+  }
+  return arr.map(p=>p==='…'?'<button disabled>…</button>':`<button data-page="${p}" class="${p===cur?'active':''}">${p}</button>`).join('');
+}
+
+function openCandidate(id){
+  const c=state.candidates.find(x=>x.id===id); if(!c) return;
+  const p=$('#panel'); const b=$('#panelBack');
+  p.innerHTML=`
+    <div class="panel-head">
+      <div>
+        <h2>${esc(c.name)}</h2>
+        <div class="sub">${esc(c.position||'')} · ${esc(c.department||'')}</div>
+      </div>
+      <button class="close" id="pClose"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M6 18L18 6"/></svg></button>
+    </div>
+    <div class="panel-body">
+      <div style="margin-bottom:16px"><span class="badge ${c.status==='Passed'?'pass':c.status==='Failed'?'fail':'hold'}">${esc(c.status)}</span> ${c.score!=null?`<span class="tag" style="margin-left:6px">Score: ${c.score}</span>`:''}</div>
+      <dl class="kv">
+        <dt>Candidate ID</dt><dd>${esc(c.empId||c.id.slice(0,8))}</dd>
+        <dt>Full Name</dt><dd>${esc(c.name)}</dd>
+        <dt>Position</dt><dd>${esc(c.position||'—')}</dd>
+        <dt>Department</dt><dd>${esc(c.department||'—')}</dd>
+        <dt>Interview Date</dt><dd>${esc(c.interviewDate||'—')}</dd>
+        <dt>Interviewer</dt><dd>${esc(c.interviewer||'—')}</dd>
+        <dt>Score</dt><dd>${c.score==null?'—':c.score}</dd>
+        <dt>Status</dt><dd>${esc(c.status)}</dd>
+        <dt>Nationality</dt><dd>${esc(c.nationality||'—')}</dd>
+        <dt>Experience</dt><dd>${c.experience==null?'—':c.experience+' years'}</dd>
+      </dl>
+      ${c.notes?`<div class="divider"></div><div class="nav-section" style="color:var(--muted);padding:0 0 6px">Notes</div><div style="font-size:13px;line-height:1.6">${esc(c.notes)}</div>`:''}
+      ${Object.keys(c.extra||{}).length?`<div class="divider"></div><div class="nav-section" style="color:var(--muted);padding:0 0 6px">Additional Fields</div><dl class="kv">${Object.entries(c.extra).map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`:''}
+    </div>`;
+  p.classList.add('open'); b.classList.add('open');
+  $('#pClose').onclick=closePanel;
+}
+function closePanel(){ $('#panel').classList.remove('open'); $('#panelBack').classList.remove('open'); }
+
+/* ---------- Upload ---------- */
+const SYSTEM_FIELDS=[
+  ['name','Candidate Name'],['position','Position Applied'],['department','Department'],
+  ['interviewDate','Interview Date'],['interviewer','Interviewer'],['score','Score / Rating'],
+  ['status','Status'],['nationality','Nationality'],['experience','Years of Experience'],
+  ['notes','Notes'],['empId','Employee / Candidate ID']
+];
+const AUTO_MAP={
+  name:['name','candidate','full name','candidate name','employee name'],
+  position:['position','role','designation','applied','recommended for'],
+  department:['department','dept','company','division','unit'],
+  interviewDate:['date','interview date','interviewed'],
+  interviewer:['interviewer','panel','reviewer','interviewed by'],
+  score:['score','rating','marks','technical knowledge'],
+  status:['status','result','outcome','recommendation'],
+  nationality:['nationality','country'],
+  experience:['experience','years','yrs','exp'],
+  notes:['notes','remarks','comments'],
+  empId:['emp id','employee id','id','candidate id','sn'],
+};
+function autoMatch(header){
+  const h=String(header||'').toLowerCase().trim();
+  for(const f of SYSTEM_FIELDS){
+    const keys=AUTO_MAP[f[0]]||[];
+    if(keys.some(k=>h===k||h.includes(k))) return f[0];
+  }
+  return '';
+}
+
+let pendingRows=null, pendingHeaders=null;
+
+function renderUpload(el){
+  if(state.user.role!=='admin'){el.innerHTML='<div class="card">You don\'t have access to this page.</div>';return;}
+  el.innerHTML=`
+  <div class="page-head"><div><h1>Upload Candidates</h1><div class="sub">Append candidates from Excel (.xlsx / .xls). Existing records remain.</div></div></div>
+  <div class="upload-zone" id="dz">
+    <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg></div>
+    <h3>Drop your Excel file here</h3>
+    <p>or click to browse. Accepted: .xlsx, .xls</p>
+    <input type="file" id="fileInp" accept=".xlsx,.xls" style="display:none"/>
+  </div>
+  <div id="mapStep" class="hide" style="margin-top:16px"></div>
+  <div class="card" style="margin-top:18px">
+    <h3>Expected Columns</h3>
+    <div style="font-size:13px;color:var(--muted);line-height:1.8">
+      ${SYSTEM_FIELDS.map(f=>`<span class="tag" style="margin:0 6px 6px 0;display:inline-block">${esc(f[1])}</span>`).join('')}
+      <div style="margin-top:10px">Column names don't need to match exactly — we'll auto-detect and let you map any unmatched fields.</div>
+    </div>
+  </div>`;
+  const dz=$('#dz'), inp=$('#fileInp');
+  dz.onclick=()=>inp.click();
+  inp.onchange=e=>handleFile(e.target.files[0]);
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+  dz.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)handleFile(f);});
+}
+function handleFile(file){
+  if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
+      if(!rows.length){toast('Empty sheet','err');return;}
+      pendingHeaders=Object.keys(rows[0]);
+      pendingRows=rows;
+      showMapping();
+    }catch(err){console.error(err);toast('Failed to parse file','err');}
+  };
+  r.readAsArrayBuffer(file);
+}
+function showMapping(){
+  const map={}; pendingHeaders.forEach(h=>map[h]=autoMatch(h));
+  const wrap=$('#mapStep'); wrap.classList.remove('hide');
+  wrap.innerHTML=`<div class="card">
+    <h3>Column Mapping<span class="hint">${pendingRows.length} rows detected</span></h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;max-height:340px;overflow:auto;padding-right:6px">
+      ${pendingHeaders.map(h=>`
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px">${esc(h)}</div>
+          <select class="select" style="width:100%" data-h="${esc(h)}">
+            <option value="">— Ignore —</option>
+            ${SYSTEM_FIELDS.map(f=>`<option value="${f[0]}" ${map[h]===f[0]?'selected':''}>${esc(f[1])}</option>`).join('')}
+          </select>
+        </div>`).join('')}
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px">
+      <button class="btn" id="mapCancel">Cancel</button>
+      <button class="btn btn-primary" id="mapImport">Import ${pendingRows.length} Records</button>
+    </div>
+  </div>`;
+  $('#mapCancel').onclick=()=>{pendingRows=null;pendingHeaders=null;wrap.classList.add('hide');wrap.innerHTML='';};
+  $('#mapImport').onclick=()=>{
+    const m={}; wrap.querySelectorAll('select[data-h]').forEach(s=>{if(s.value)m[s.dataset.h]=s.value;});
+    importRows(m);
+  };
+}
+function importRows(mapping){
+  const added=[];
+  pendingRows.forEach(r=>{
+    const c={id:uid(),extra:{}};
+    Object.entries(r).forEach(([k,v])=>{
+      const f=mapping[k];
+      if(!f){ if(v!=='') c.extra[k]=v; return; }
+      if(f==='score'||f==='experience') c[f]=parseScore(v);
+      else if(f==='interviewDate') c[f]=fmtDate(v);
+      else if(f==='status') c[f]=normStatus(v);
+      else c[f]=v===''?null:String(v).trim();
+    });
+    if(!c.status) c.status='On Hold';
+    if(!c.name) c.name='(Unnamed)';
+    added.push(c);
+  });
+  state.candidates=state.candidates.concat(added);
+  LS.set('candidates',state.candidates);
+  toast(`Added ${added.length} candidates to the pool`,'ok');
+  pendingRows=null; pendingHeaders=null;
+  state.page='pool'; render();
+}
+
+/* ---------- Users ---------- */
+function renderUsers(el){
+  if(state.user.role!=='admin'){el.innerHTML='<div class="card">Access denied.</div>';return;}
+  el.innerHTML=`
+  <div class="page-head"><div><h1>User Management</h1><div class="sub">${state.users.length} sub-user${state.users.length===1?'':'s'} · admin account is built-in.</div></div>
+    <div class="actions"><button class="btn btn-primary" id="addU">+ Add User</button></div>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Date Created</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
+      <tbody>
+        <tr><td><strong>${esc(ADMIN.name)}</strong></td><td>${esc(ADMIN.username)}</td><td><span class="badge neutral">Admin</span></td><td>—</td><td><span class="badge pass">Active</span></td><td style="text-align:right;color:var(--muted);font-size:12px">Built-in</td></tr>
+        ${state.users.length?state.users.map(u=>`
+          <tr><td><strong>${esc(u.name)}</strong></td><td>${esc(u.username)}</td>
+            <td><span class="badge neutral">${esc(u.role==='director'?'Director':'Project Manager')}</span></td>
+            <td class="num">${esc(u.createdAt)}</td>
+            <td><span class="badge ${u.active?'pass':'fail'}">${u.active?'Active':'Inactive'}</span></td>
+            <td style="text-align:right">
+              <button class="btn btn-sm" data-edit="${u.id}">Edit</button>
+              <button class="btn btn-sm" data-tog="${u.id}">${u.active?'Deactivate':'Activate'}</button>
+            </td>
+          </tr>`).join(''):''}
+      </tbody>
+    </table>
+  </div>`;
+  $('#addU').onclick=()=>userModal();
+  document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>userModal(b.dataset.edit));
+  document.querySelectorAll('[data-tog]').forEach(b=>b.onclick=()=>{
+    const u=state.users.find(x=>x.id===b.dataset.tog); u.active=!u.active;
+    LS.set('users',state.users); renderUsers(el);
+  });
+}
+function userModal(id){
+  const editing=id?state.users.find(u=>u.id===id):null;
+  const m=$('#modal');
+  m.innerHTML=`<div class="modal">
+    <h2>${editing?'Edit User':'Add New User'}</h2>
+    <div class="field"><label>Full Name</label><input id="uName" value="${esc(editing?.name||'')}"/></div>
+    <div class="field"><label>Username</label><input id="uUser" value="${esc(editing?.username||'')}"/></div>
+    <div class="field"><label>Password ${editing?'(leave blank to keep current)':''}</label><input id="uPass" type="password" value=""/></div>
+    <div class="field"><label>Role</label>
+      <select class="select" id="uRole" style="width:100%">
+        <option value="director" ${editing?.role==='director'?'selected':''}>Director — read-only</option>
+        <option value="project_manager" ${editing?.role==='project_manager'?'selected':''}>Project Manager — read-only</option>
+      </select>
+    </div>
+    <div class="actions"><button class="btn" id="uCancel">Cancel</button><button class="btn btn-primary" id="uSave">${editing?'Save Changes':'Create User'}</button></div>
+  </div>`;
+  m.classList.add('open');
+  $('#uCancel').onclick=()=>m.classList.remove('open');
+  $('#uSave').onclick=()=>{
+    const name=$('#uName').value.trim(), username=$('#uUser').value.trim(), pass=$('#uPass').value, role=$('#uRole').value;
+    if(!name||!username){toast('Name and username required','err');return;}
+    if(username===ADMIN.username){toast('Username reserved','err');return;}
+    const dup=state.users.find(u=>u.username===username && u.id!==editing?.id);
+    if(dup){toast('Username already exists','err');return;}
+    if(editing){
+      editing.name=name; editing.username=username; editing.role=role;
+      if(pass) editing.password=pass;
+    } else {
+      if(!pass){toast('Password required','err');return;}
+      state.users.push({id:uid(),name,username,password:pass,role,active:true,createdAt:new Date().toISOString().slice(0,10)});
+    }
+    LS.set('users',state.users); m.classList.remove('open'); renderUsers($('#pageContent'));
+    toast(editing?'User updated':'User created','ok');
+  };
+}
+
+/* ---------- Settings ---------- */
+function renderSettings(el){
+  if(state.user.role!=='admin'){el.innerHTML='<div class="card">Access denied.</div>';return;}
+  el.innerHTML=`
+  <div class="page-head"><div><h1>Settings</h1><div class="sub">Manage portal identity and data.</div></div></div>
+  <div class="set-grid">
+    <div class="card">
+      <h3>Brand Identity</h3>
+      <div class="field"><label>Portal Display Name</label><input id="sName" value="${esc(state.settings.portalName)}"/></div>
+      <div class="field"><label>Company Logo</label>
+        <div style="display:flex;gap:12px;align-items:center">
+          ${state.settings.logo?`<img src="${state.settings.logo}" style="width:48px;height:48px;object-fit:contain;border:1px solid var(--line);padding:4px;background:#fff"/>`:`<div style="width:48px;height:48px;background:var(--purple);color:var(--gold);display:grid;place-items:center;font-family:Sora;font-weight:800">e&</div>`}
+          <input type="file" id="sLogo" accept="image/*"/>
+          ${state.settings.logo?'<button class="btn btn-sm btn-danger" id="sLogoRm">Remove</button>':''}
+        </div>
+      </div>
+      <button class="btn btn-primary" id="sSave">Save Changes</button>
+    </div>
+    <div class="card">
+      <h3>Data Management</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Current pool: <strong>${state.candidates.length}</strong> candidates · <strong>${state.users.length}</strong> sub-users.</p>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="btn" id="sExport">Export Full Backup (JSON)</button>
+        <button class="btn" id="sImport">Import Backup (JSON)</button>
+        <input type="file" id="sImportInp" accept=".json" style="display:none"/>
+        <button class="btn btn-danger" id="sClear">Clear All Candidate Data</button>
+      </div>
+    </div>
+  </div>`;
+  $('#sLogo').onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader(); r.onload=ev=>{state.settings.logo=ev.target.result;LS.set('settings',state.settings);renderSettings(el);toast('Logo updated','ok');render();};
+    r.readAsDataURL(f);
+  };
+  const rm=$('#sLogoRm'); if(rm) rm.onclick=()=>{state.settings.logo=null;LS.set('settings',state.settings);renderSettings(el);};
+  $('#sSave').onclick=()=>{state.settings.portalName=$('#sName').value.trim()||state.settings.portalName;LS.set('settings',state.settings);toast('Settings saved','ok');render();};
+  $('#sExport').onclick=()=>{
+    const data={candidates:state.candidates,users:state.users,settings:state.settings,exportedAt:new Date().toISOString()};
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`eand-talent-backup-${new Date().toISOString().slice(0,10)}.json`; a.click();
+  };
+  $('#sImport').onclick=()=>$('#sImportInp').click();
+  $('#sImportInp').onchange=e=>{
+    const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader(); r.onload=ev=>{try{
+      const d=JSON.parse(ev.target.result);
+      if(d.candidates) state.candidates=d.candidates;
+      if(d.users) state.users=d.users;
+      if(d.settings) state.settings=d.settings;
+      LS.set('candidates',state.candidates);LS.set('users',state.users);LS.set('settings',state.settings);
+      toast('Backup restored','ok'); render();
+    }catch(err){toast('Invalid backup file','err');}};
+    r.readAsText(f);
+  };
+  $('#sClear').onclick=()=>{
+    confirmModal('Clear all candidate data?','This permanently removes all '+state.candidates.length+' candidates. This cannot be undone.','Delete All',()=>{
+      state.candidates=[]; LS.set('candidates',[]); render(); toast('Candidate pool cleared','ok');
+    });
+  };
+}
+function confirmModal(title,msg,confirmLabel,onOk){
+  const m=$('#modal');
+  m.innerHTML=`<div class="modal">
+    <h2>${esc(title)}</h2>
+    <p style="color:var(--muted);font-size:13.5px;line-height:1.6">${esc(msg)}</p>
+    <div class="actions"><button class="btn" id="cCancel">Cancel</button><button class="btn btn-danger" id="cOk">${esc(confirmLabel)}</button></div>
+  </div>`;
+  m.classList.add('open');
+  $('#cCancel').onclick=()=>m.classList.remove('open');
+  $('#cOk').onclick=()=>{m.classList.remove('open');onOk();};
+}
+
+/* ---------- Export ---------- */
+function exportXlsx(rows){
+  const data=rows.map((c,i)=>({
+    '#':i+1,'Name':c.name,'Position':c.position,'Department':c.department,
+    'Interview Date':c.interviewDate,'Score':c.score,'Status':c.status,
+    'Nationality':c.nationality,'Experience (yrs)':c.experience,
+    'Interviewer':c.interviewer,'Notes':c.notes
+  }));
+  const ws=XLSX.utils.json_to_sheet(data);
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Talent Pool');
+  XLSX.writeFile(wb,`eand-talent-pool-${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('Excel exported','ok');
+}
+function exportPdf(rows){
+  const { jsPDF }=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
+  // Header
+  doc.setFillColor(75,0,130); doc.rect(0,0,842,56,'F');
+  doc.setFillColor(201,168,76); doc.rect(0,56,842,3,'F');
+  doc.setTextColor(201,168,76); doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.text('e&',32,36);
+  doc.setTextColor(255,255,255); doc.setFontSize(12); doc.text(state.settings.portalName,64,36);
+  doc.setFontSize(9); doc.setTextColor(230,198,106); doc.text('Governance · Talent Pool Export',64,50);
+  // Meta
+  doc.setTextColor(40,40,40); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  const f=state.filters;
+  const filterTxt=[
+    f.q&&`Search: "${f.q}"`,f.dept&&`Dept: ${f.dept}`,f.status&&`Status: ${f.status}`,
+    f.position&&`Position: ${f.position}`,f.nationality&&`Nationality: ${f.nationality}`
+  ].filter(Boolean).join(' · ')||'All records';
+  doc.text(`Exported: ${new Date().toLocaleString()}    Records: ${rows.length}    Filters: ${filterTxt}`,32,78);
+  doc.autoTable({
+    startY:92,
+    head:[['#','Name','Position','Department','Date','Score','Status','Nationality','Exp','Interviewer']],
+    body:rows.map((c,i)=>[i+1,c.name||'',c.position||'',c.department||'',c.interviewDate||'',c.score??'',c.status||'',c.nationality||'',c.experience??'',c.interviewer||'']),
+    styles:{font:'helvetica',fontSize:8,cellPadding:5,textColor:30,lineColor:[220,215,228],lineWidth:.4},
+    headStyles:{fillColor:[43,0,77],textColor:[230,198,106],fontStyle:'bold',fontSize:8.5},
+    alternateRowStyles:{fillColor:[248,245,250]},
+    margin:{left:24,right:24}
+  });
+  doc.save(`eand-talent-pool-${new Date().toISOString().slice(0,10)}.pdf`);
+  toast('PDF exported','ok');
+}
+
+/* ---------- Boot ---------- */
+render();
+</script>
+</body>
+</html>
