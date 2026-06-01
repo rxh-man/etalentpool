@@ -14,7 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      candidates: {
+        Row: {
+          attendance: string | null
+          candidate_name: string | null
+          communication_skill: string | null
+          company: string | null
+          created_at: string
+          designation: string | null
+          driving_licence: string | null
+          emp_id: string | null
+          id: string
+          interview_date: string | null
+          recommended_for: string | null
+          remarks: string | null
+          sn: string | null
+          technical_knowledge: string | null
+        }
+        Insert: {
+          attendance?: string | null
+          candidate_name?: string | null
+          communication_skill?: string | null
+          company?: string | null
+          created_at?: string
+          designation?: string | null
+          driving_licence?: string | null
+          emp_id?: string | null
+          id?: string
+          interview_date?: string | null
+          recommended_for?: string | null
+          remarks?: string | null
+          sn?: string | null
+          technical_knowledge?: string | null
+        }
+        Update: {
+          attendance?: string | null
+          candidate_name?: string | null
+          communication_skill?: string | null
+          company?: string | null
+          created_at?: string
+          designation?: string | null
+          driving_licence?: string | null
+          emp_id?: string | null
+          id?: string
+          interview_date?: string | null
+          recommended_for?: string | null
+          remarks?: string | null
+          sn?: string | null
+          technical_knowledge?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
