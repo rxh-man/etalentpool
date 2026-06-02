@@ -1057,7 +1057,7 @@ function exportPdf(rows){
 /* ---------- Boot ---------- */
 (async function boot(){
   render(); // initial paint (login or shell with empty list)
-  await loadCandidates();
+  await Promise.all([loadCandidates(), loadUsers()]);
   subscribeRealtime();
   render();
 })();
