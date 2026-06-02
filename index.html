@@ -903,9 +903,11 @@ function renderUsers(el){
   </div>`;
   $('#addU').onclick=()=>userModal();
   document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>userModal(b.dataset.edit));
-  document.querySelectorAll('[data-tog]').forEach(b=>b.onclick=()=>{
-    const u=state.users.find(x=>x.id===b.dataset.tog); u.active=!u.active;
-    LS.set('users',state.users); renderUsers(el);
+  document.querySelectorAll('[data-tog]').forEach(b=>b.onclick=async ()=>{
+    const u=state.users.find(x=>x.id===b.dataset.tog); if(!u) return;
+    const next=!u.active;
+    const ok=await cloudUpdateUser(u.id,{active:next});
+    if(ok){ u.active=next; renderUsers(el); toast('User '+(next?'activated':'deactivated'),'ok'); }
   });
 }
 function userModal(id){
@@ -926,20 +928,23 @@ function userModal(id){
   </div>`;
   m.classList.add('open');
   $('#uCancel').onclick=()=>m.classList.remove('open');
-  $('#uSave').onclick=()=>{
+  $('#uSave').onclick=async ()=>{
     const name=$('#uName').value.trim(), username=$('#uUser').value.trim(), pass=$('#uPass').value, role=$('#uRole').value;
     if(!name||!username){toast('Name and username required','err');return;}
     if(username===ADMIN.username){toast('Username reserved','err');return;}
     const dup=state.users.find(u=>u.username===username && u.id!==editing?.id);
     if(dup){toast('Username already exists','err');return;}
     if(editing){
-      editing.name=name; editing.username=username; editing.role=role;
-      if(pass) editing.password=pass;
+      const patch={name,username,role}; if(pass) patch.password=pass;
+      const ok=await cloudUpdateUser(editing.id,patch); if(!ok) return;
+      Object.assign(editing,patch);
     } else {
       if(!pass){toast('Password required','err');return;}
-      state.users.push({id:uid(),name,username,password:pass,role,active:true,createdAt:new Date().toISOString().slice(0,10)});
+      const row=await cloudInsertUser({name,username,password:pass,role,active:true});
+      if(!row) return;
+      state.users.push({id:row.id,name:row.name,username:row.username,password:row.password,role:row.role,active:row.active,createdAt:(row.created_at||'').slice(0,10)});
     }
-    LS.set('users',state.users); m.classList.remove('open'); renderUsers($('#pageContent'));
+    m.classList.remove('open'); renderUsers($('#pageContent'));
     toast(editing?'User updated':'User created','ok');
   };
 }
