@@ -586,29 +586,24 @@ function drawCharts(list){
   Chart.defaults.font.family="'DM Sans',sans-serif";
   Chart.defaults.font.size=11;
   Chart.defaults.color='#5A4A50';
+  if(window.ChartDataLabels && !drawCharts._reg){ Chart.register(window.ChartDataLabels); drawCharts._reg=true; }
+
+  const dlBar={anchor:'end',align:'end',color:'#22141A',font:{weight:'700',size:11},formatter:v=>v>0?v:''};
+  const dlPie={color:'#fff',font:{weight:'700',size:12},formatter:(v,ctx)=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);const p=t?Math.round(v/t*100):0;return v>0?`${v} (${p}%)`:'';}};
 
   const st=['Passed','Failed','On Hold'].map(s=>list.filter(c=>c.status===s).length);
-  state.charts.status=new Chart($('#cStatus'),{type:'doughnut',data:{labels:['Recommended','Not Recommended','On Hold'],datasets:[{data:st,backgroundColor:['#16794C','#B42318','#C9A84C'],borderWidth:0}]},options:{cutout:'62%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);const p=t?Math.round(c.parsed/t*100):0;return ` ${c.label}: ${c.parsed} (${p}%)`;}}}}}});
+  state.charts.status=new Chart($('#cStatus'),{type:'doughnut',data:{labels:['Recommended','Not Recommended','On Hold'],datasets:[{data:st,backgroundColor:['#16794C','#B42318','#C9A84C'],borderWidth:0}]},options:{cutout:'62%',layout:{padding:8},plugins:{legend:{position:'bottom'},datalabels:dlPie,tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);const p=t?Math.round(c.parsed/t*100):0;return ` ${c.label}: ${c.parsed} (${p}%)`;}}}}}});
 
   const dep=groupCount(list,'company').slice(0,8);
-  state.charts.company=new Chart($('#cCompany'),{type:'bar',data:{labels:dep.map(d=>d[0]),datasets:[{data:dep.map(d=>d[1]),backgroundColor:GOLD,borderColor:'#A4861F',borderWidth:1}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#F0E6E8'}},y:{grid:{display:false}}}}});
-
-  const tm=new Map();
-  list.forEach(c=>{if(c.interviewDate){const d=new Date(c.interviewDate);if(!isNaN(d)){const k=d.toISOString().slice(0,7);tm.set(k,(tm.get(k)||0)+1);}}});
-  const tkeys=[...tm.keys()].sort();
-  state.charts.time=new Chart($('#cTime'),{type:'line',data:{labels:tkeys,datasets:[{data:tkeys.map(k=>tm.get(k)),borderColor:MAROON,backgroundColor:'rgba(128,0,0,0.08)',fill:true,tension:.3,pointBackgroundColor:GOLD,pointBorderColor:MAROON,pointRadius:4}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#F0E6E8'},beginAtZero:true,ticks:{precision:0}}}}});
-
-  const buckets=[0,0,0,0,0]; const labels=['0–2','2–4','4–6','6–8','8–10'];
-  list.forEach(c=>{if(typeof c.score==='number'){const i=Math.min(4,Math.max(0,Math.floor(c.score/2)));buckets[i]++;}});
-  state.charts.score=new Chart($('#cScore'),{type:'bar',data:{labels,datasets:[{data:buckets,backgroundColor:MAROON,borderColor:MAROON2,borderWidth:1}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#F0E6E8'},beginAtZero:true,ticks:{precision:0}}}}});
+  state.charts.company=new Chart($('#cCompany'),{type:'bar',data:{labels:dep.map(d=>d[0]),datasets:[{data:dep.map(d=>d[1]),backgroundColor:GOLD,borderColor:'#A4861F',borderWidth:1}]},options:{indexAxis:'y',layout:{padding:{right:28}},plugins:{legend:{display:false},datalabels:{anchor:'end',align:'right',color:'#22141A',font:{weight:'700',size:11},formatter:v=>v>0?v:''}},scales:{x:{grid:{color:'#F0E6E8'}},y:{grid:{display:false}}}}});
 
   let att=groupCount(list,'attendance');
   const top=att.slice(0,6); const other=att.slice(6).reduce((a,b)=>a+b[1],0);
   const nl=top.map(n=>n[0]).concat(other?['Other']:[]); const nd=top.map(n=>n[1]).concat(other?[other]:[]);
-  state.charts.att=new Chart($('#cAtt'),{type:'doughnut',data:{labels:nl,datasets:[{data:nd,backgroundColor:PALETTE,borderWidth:0}]},options:{cutout:'58%',plugins:{legend:{position:'bottom',labels:{boxWidth:10}}}}});
+  state.charts.att=new Chart($('#cAtt'),{type:'doughnut',data:{labels:nl,datasets:[{data:nd,backgroundColor:PALETTE,borderWidth:0}]},options:{cutout:'58%',layout:{padding:8},plugins:{legend:{position:'bottom',labels:{boxWidth:10}},datalabels:dlPie}}});
 
   const des=groupCount(list,'designation').slice(0,8);
-  state.charts.des=new Chart($('#cDes'),{type:'bar',data:{labels:des.map(p=>p[0]),datasets:[{data:des.map(p=>p[1]),backgroundColor:MAROON2,borderColor:MAROON,borderWidth:1}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{maxRotation:35,minRotation:0}},y:{grid:{color:'#F0E6E8'},beginAtZero:true,ticks:{precision:0}}}}});
+  state.charts.des=new Chart($('#cDes'),{type:'bar',data:{labels:des.map(p=>p[0]),datasets:[{data:des.map(p=>p[1]),backgroundColor:MAROON2,borderColor:MAROON,borderWidth:1}]},options:{layout:{padding:{top:20}},plugins:{legend:{display:false},datalabels:dlBar},scales:{x:{grid:{display:false},ticks:{maxRotation:35,minRotation:0}},y:{grid:{color:'#F0E6E8'},beginAtZero:true,ticks:{precision:0}}}}});
 }
 
 /* ---------- Talent Pool ---------- */
