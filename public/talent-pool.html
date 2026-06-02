@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -236,7 +237,7 @@ const state = {
   user: SS.get('session', null),
   page: 'dashboard',
   candidates: [],
-  users: LS.get('users', []),
+  users: [],
   settings: LS.get('settings', { portalName:'e& Governance — Talent Pool', logo:null }),
   filters: { q:'', company:'', status:'', designation:'', attendance:'' },
   sort: { col:'_idx', dir:'asc' },
@@ -348,6 +349,33 @@ function subscribeRealtime(){
       if(state.user) render();
     })
     .subscribe();
+  sb.channel('app-users-realtime')
+    .on('postgres_changes',{event:'*',schema:'public',table:'app_users'},async ()=>{
+      await loadUsers();
+      if(state.user && state.page==='users') render();
+    })
+    .subscribe();
+}
+
+async function loadUsers(){
+  const { data, error } = await sb.from('app_users').select('*').order('created_at',{ascending:true});
+  if(error){ console.error(error); return; }
+  state.users = (data||[]).map(u=>({
+    id:u.id, name:u.name, username:u.username, password:u.password,
+    role:u.role, active:u.active, createdAt:(u.created_at||'').slice(0,10)
+  }));
+}
+async function cloudInsertUser(u){
+  const { data, error } = await sb.from('app_users').insert({
+    name:u.name, username:u.username, password:u.password, role:u.role, active:u.active!==false
+  }).select().single();
+  if(error){ toast('Failed to save user: '+error.message,'err'); return null; }
+  return data;
+}
+async function cloudUpdateUser(id, patch){
+  const { error } = await sb.from('app_users').update(patch).eq('id',id);
+  if(error){ toast('Failed to update user: '+error.message,'err'); return false; }
+  return true;
 }
 
 /* ---------- Auth ---------- */
@@ -533,13 +561,10 @@ function renderDashboard(el){
     <div class="kpi"><div class="label">Total Candidates</div><div class="value">${s.total.toLocaleString()}</div><div class="meta">In active pool</div></div>
     <div class="kpi green"><div class="label">Recommended Rate</div><div class="value">${s.passRate}%</div><div class="meta">${s.passed} recommended</div></div>
     <div class="kpi gold"><div class="label">Companies</div><div class="value">${s.companies}</div><div class="meta">Unique represented</div></div>
-    <div class="kpi ink"><div class="label">Avg Technical Score</div><div class="value">${s.avg}</div><div class="meta">Across all interviews</div></div>
   </div>
   <div class="grid-charts">
     <div class="card col-4"><h3>Recommendation Status<span class="hint">${list.length} records</span></h3><div class="chart-wrap"><canvas id="cStatus"></canvas></div></div>
     <div class="card col-8"><h3>Top Companies<span class="hint">By candidate count</span></h3><div class="chart-wrap"><canvas id="cCompany"></canvas></div></div>
-    <div class="card col-8"><h3>Interviews Over Time<span class="hint">Monthly</span></h3><div class="chart-wrap"><canvas id="cTime"></canvas></div></div>
-    <div class="card col-4"><h3>Technical Knowledge<span class="hint">Score buckets</span></h3><div class="chart-wrap"><canvas id="cScore"></canvas></div></div>
     <div class="card col-4"><h3>Attendance Mix<span class="hint">Top 6</span></h3><div class="chart-wrap"><canvas id="cAtt"></canvas></div></div>
     <div class="card col-8"><h3>Top Designations<span class="hint">Top 8</span></h3><div class="chart-wrap"><canvas id="cDes"></canvas></div></div>
   </div>`;
@@ -561,29 +586,24 @@ function drawCharts(list){
   Chart.defaults.font.family="'DM Sans',sans-serif";
   Chart.defaults.font.size=11;
   Chart.defaults.color='#5A4A50';
+  if(window.ChartDataLabels && !drawCharts._reg){ Chart.register(window.ChartDataLabels); drawCharts._reg=true; }
+
+  const dlBar={anchor:'end',align:'end',color:'#22141A',font:{weight:'700',size:11},formatter:v=>v>0?v:''};
+  const dlPie={color:'#fff',font:{weight:'700',size:12},formatter:(v,ctx)=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);const p=t?Math.round(v/t*100):0;return v>0?`${v} (${p}%)`:'';}};
 
   const st=['Passed','Failed','On Hold'].map(s=>list.filter(c=>c.status===s).length);
-  state.charts.status=new Chart($('#cStatus'),{type:'doughnut',data:{labels:['Recommended','Not Recommended','On Hold'],datasets:[{data:st,backgroundColor:['#16794C','#B42318','#C9A84C'],borderWidth:0}]},options:{cutout:'62%',plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);const p=t?Math.round(c.parsed/t*100):0;return ` ${c.label}: ${c.parsed} (${p}%)`;}}}}}});
+  state.charts.status=new Chart($('#cStatus'),{type:'doughnut',data:{labels:['Recommended','Not Recommended','On Hold'],datasets:[{data:st,backgroundColor:['#16794C','#B42318','#C9A84C'],borderWidth:0}]},options:{cutout:'62%',layout:{padding:8},plugins:{legend:{position:'bottom'},datalabels:dlPie,tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);const p=t?Math.round(c.parsed/t*100):0;return ` ${c.label}: ${c.parsed} (${p}%)`;}}}}}});
 
   const dep=groupCount(list,'company').slice(0,8);
-  state.charts.company=new Chart($('#cCompany'),{type:'bar',data:{labels:dep.map(d=>d[0]),datasets:[{data:dep.map(d=>d[1]),backgroundColor:GOLD,borderColor:'#A4861F',borderWidth:1}]},options:{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{grid:{color:'#F0E6E8'}},y:{grid:{display:false}}}}});
-
-  const tm=new Map();
-  list.forEach(c=>{if(c.interviewDate){const d=new Date(c.interviewDate);if(!isNaN(d)){const k=d.toISOString().slice(0,7);tm.set(k,(tm.get(k)||0)+1);}}});
-  const tkeys=[...tm.keys()].sort();
-  state.charts.time=new Chart($('#cTime'),{type:'line',data:{labels:tkeys,datasets:[{data:tkeys.map(k=>tm.get(k)),borderColor:MAROON,backgroundColor:'rgba(128,0,0,0.08)',fill:true,tension:.3,pointBackgroundColor:GOLD,pointBorderColor:MAROON,pointRadius:4}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#F0E6E8'},beginAtZero:true,ticks:{precision:0}}}}});
-
-  const buckets=[0,0,0,0,0]; const labels=['0–2','2–4','4–6','6–8','8–10'];
-  list.forEach(c=>{if(typeof c.score==='number'){const i=Math.min(4,Math.max(0,Math.floor(c.score/2)));buckets[i]++;}});
-  state.charts.score=new Chart($('#cScore'),{type:'bar',data:{labels,datasets:[{data:buckets,backgroundColor:MAROON,borderColor:MAROON2,borderWidth:1}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{color:'#F0E6E8'},beginAtZero:true,ticks:{precision:0}}}}});
+  state.charts.company=new Chart($('#cCompany'),{type:'bar',data:{labels:dep.map(d=>d[0]),datasets:[{data:dep.map(d=>d[1]),backgroundColor:GOLD,borderColor:'#A4861F',borderWidth:1}]},options:{indexAxis:'y',layout:{padding:{right:28}},plugins:{legend:{display:false},datalabels:{anchor:'end',align:'right',color:'#22141A',font:{weight:'700',size:11},formatter:v=>v>0?v:''}},scales:{x:{grid:{color:'#F0E6E8'}},y:{grid:{display:false}}}}});
 
   let att=groupCount(list,'attendance');
   const top=att.slice(0,6); const other=att.slice(6).reduce((a,b)=>a+b[1],0);
   const nl=top.map(n=>n[0]).concat(other?['Other']:[]); const nd=top.map(n=>n[1]).concat(other?[other]:[]);
-  state.charts.att=new Chart($('#cAtt'),{type:'doughnut',data:{labels:nl,datasets:[{data:nd,backgroundColor:PALETTE,borderWidth:0}]},options:{cutout:'58%',plugins:{legend:{position:'bottom',labels:{boxWidth:10}}}}});
+  state.charts.att=new Chart($('#cAtt'),{type:'doughnut',data:{labels:nl,datasets:[{data:nd,backgroundColor:PALETTE,borderWidth:0}]},options:{cutout:'58%',layout:{padding:8},plugins:{legend:{position:'bottom',labels:{boxWidth:10}},datalabels:dlPie}}});
 
   const des=groupCount(list,'designation').slice(0,8);
-  state.charts.des=new Chart($('#cDes'),{type:'bar',data:{labels:des.map(p=>p[0]),datasets:[{data:des.map(p=>p[1]),backgroundColor:MAROON2,borderColor:MAROON,borderWidth:1}]},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{maxRotation:35,minRotation:0}},y:{grid:{color:'#F0E6E8'},beginAtZero:true,ticks:{precision:0}}}}});
+  state.charts.des=new Chart($('#cDes'),{type:'bar',data:{labels:des.map(p=>p[0]),datasets:[{data:des.map(p=>p[1]),backgroundColor:MAROON2,borderColor:MAROON,borderWidth:1}]},options:{layout:{padding:{top:20}},plugins:{legend:{display:false},datalabels:dlBar},scales:{x:{grid:{display:false},ticks:{maxRotation:35,minRotation:0}},y:{grid:{color:'#F0E6E8'},beginAtZero:true,ticks:{precision:0}}}}});
 }
 
 /* ---------- Talent Pool ---------- */
@@ -883,9 +903,11 @@ function renderUsers(el){
   </div>`;
   $('#addU').onclick=()=>userModal();
   document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>userModal(b.dataset.edit));
-  document.querySelectorAll('[data-tog]').forEach(b=>b.onclick=()=>{
-    const u=state.users.find(x=>x.id===b.dataset.tog); u.active=!u.active;
-    LS.set('users',state.users); renderUsers(el);
+  document.querySelectorAll('[data-tog]').forEach(b=>b.onclick=async ()=>{
+    const u=state.users.find(x=>x.id===b.dataset.tog); if(!u) return;
+    const next=!u.active;
+    const ok=await cloudUpdateUser(u.id,{active:next});
+    if(ok){ u.active=next; renderUsers(el); toast('User '+(next?'activated':'deactivated'),'ok'); }
   });
 }
 function userModal(id){
@@ -906,20 +928,23 @@ function userModal(id){
   </div>`;
   m.classList.add('open');
   $('#uCancel').onclick=()=>m.classList.remove('open');
-  $('#uSave').onclick=()=>{
+  $('#uSave').onclick=async ()=>{
     const name=$('#uName').value.trim(), username=$('#uUser').value.trim(), pass=$('#uPass').value, role=$('#uRole').value;
     if(!name||!username){toast('Name and username required','err');return;}
     if(username===ADMIN.username){toast('Username reserved','err');return;}
     const dup=state.users.find(u=>u.username===username && u.id!==editing?.id);
     if(dup){toast('Username already exists','err');return;}
     if(editing){
-      editing.name=name; editing.username=username; editing.role=role;
-      if(pass) editing.password=pass;
+      const patch={name,username,role}; if(pass) patch.password=pass;
+      const ok=await cloudUpdateUser(editing.id,patch); if(!ok) return;
+      Object.assign(editing,patch);
     } else {
       if(!pass){toast('Password required','err');return;}
-      state.users.push({id:uid(),name,username,password:pass,role,active:true,createdAt:new Date().toISOString().slice(0,10)});
+      const row=await cloudInsertUser({name,username,password:pass,role,active:true});
+      if(!row) return;
+      state.users.push({id:row.id,name:row.name,username:row.username,password:row.password,role:row.role,active:row.active,createdAt:(row.created_at||'').slice(0,10)});
     }
-    LS.set('users',state.users); m.classList.remove('open'); renderUsers($('#pageContent'));
+    m.classList.remove('open'); renderUsers($('#pageContent'));
     toast(editing?'User updated':'User created','ok');
   };
 }
@@ -1032,7 +1057,7 @@ function exportPdf(rows){
 /* ---------- Boot ---------- */
 (async function boot(){
   render(); // initial paint (login or shell with empty list)
-  await loadCandidates();
+  await Promise.all([loadCandidates(), loadUsers()]);
   subscribeRealtime();
   render();
 })();
