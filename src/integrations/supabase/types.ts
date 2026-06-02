@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_users: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          name: string
+          password: string
+          role: string
+          username: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name: string
+          password: string
+          role?: string
+          username: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          name?: string
+          password?: string
+          role?: string
+          username?: string
+        }
+        Relationships: []
+      }
       candidates: {
         Row: {
           attendance: string | null
