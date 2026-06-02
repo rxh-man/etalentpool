@@ -561,13 +561,10 @@ function renderDashboard(el){
     <div class="kpi"><div class="label">Total Candidates</div><div class="value">${s.total.toLocaleString()}</div><div class="meta">In active pool</div></div>
     <div class="kpi green"><div class="label">Recommended Rate</div><div class="value">${s.passRate}%</div><div class="meta">${s.passed} recommended</div></div>
     <div class="kpi gold"><div class="label">Companies</div><div class="value">${s.companies}</div><div class="meta">Unique represented</div></div>
-    <div class="kpi ink"><div class="label">Avg Technical Score</div><div class="value">${s.avg}</div><div class="meta">Across all interviews</div></div>
   </div>
   <div class="grid-charts">
     <div class="card col-4"><h3>Recommendation Status<span class="hint">${list.length} records</span></h3><div class="chart-wrap"><canvas id="cStatus"></canvas></div></div>
     <div class="card col-8"><h3>Top Companies<span class="hint">By candidate count</span></h3><div class="chart-wrap"><canvas id="cCompany"></canvas></div></div>
-    <div class="card col-8"><h3>Interviews Over Time<span class="hint">Monthly</span></h3><div class="chart-wrap"><canvas id="cTime"></canvas></div></div>
-    <div class="card col-4"><h3>Technical Knowledge<span class="hint">Score buckets</span></h3><div class="chart-wrap"><canvas id="cScore"></canvas></div></div>
     <div class="card col-4"><h3>Attendance Mix<span class="hint">Top 6</span></h3><div class="chart-wrap"><canvas id="cAtt"></canvas></div></div>
     <div class="card col-8"><h3>Top Designations<span class="hint">Top 8</span></h3><div class="chart-wrap"><canvas id="cDes"></canvas></div></div>
   </div>`;
