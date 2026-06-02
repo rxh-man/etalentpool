@@ -349,6 +349,33 @@ function subscribeRealtime(){
       if(state.user) render();
     })
     .subscribe();
+  sb.channel('app-users-realtime')
+    .on('postgres_changes',{event:'*',schema:'public',table:'app_users'},async ()=>{
+      await loadUsers();
+      if(state.user && state.page==='users') render();
+    })
+    .subscribe();
+}
+
+async function loadUsers(){
+  const { data, error } = await sb.from('app_users').select('*').order('created_at',{ascending:true});
+  if(error){ console.error(error); return; }
+  state.users = (data||[]).map(u=>({
+    id:u.id, name:u.name, username:u.username, password:u.password,
+    role:u.role, active:u.active, createdAt:(u.created_at||'').slice(0,10)
+  }));
+}
+async function cloudInsertUser(u){
+  const { data, error } = await sb.from('app_users').insert({
+    name:u.name, username:u.username, password:u.password, role:u.role, active:u.active!==false
+  }).select().single();
+  if(error){ toast('Failed to save user: '+error.message,'err'); return null; }
+  return data;
+}
+async function cloudUpdateUser(id, patch){
+  const { error } = await sb.from('app_users').update(patch).eq('id',id);
+  if(error){ toast('Failed to update user: '+error.message,'err'); return false; }
+  return true;
 }
 
 /* ---------- Auth ---------- */
