@@ -104,6 +104,8 @@ export type Database = {
           owner: string | null
           phase: string
           project: string | null
+          severity: string
+          status: string
           suggested_solution: string | null
         }
         Insert: {
@@ -114,6 +116,8 @@ export type Database = {
           owner?: string | null
           phase: string
           project?: string | null
+          severity?: string
+          status?: string
           suggested_solution?: string | null
         }
         Update: {
@@ -124,6 +128,8 @@ export type Database = {
           owner?: string | null
           phase?: string
           project?: string | null
+          severity?: string
+          status?: string
           suggested_solution?: string | null
         }
         Relationships: []
