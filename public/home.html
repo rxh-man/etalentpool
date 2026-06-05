@@ -394,10 +394,10 @@ async function handleFile(f){
     const kSev=find('severity','priority');
     const parsed=[];
     rows.forEach(r=>{
-      const cat=normCat(kCat?r[kCat]:'');
-      const ph=normPhase(kPhase?r[kPhase]:'');
+      const cat=normCat(kCat?r[kCat]:'')||'Process';
+      const ph=normPhase(kPhase?r[kPhase]:'')||'30';
       const act=(kAction?r[kAction]:'')||'';
-      if(cat && ph && String(act).trim()){
+      if(String(act).trim()){
         parsed.push({category:cat,phase:ph,action:String(act).trim(),owner:String((kOwner?r[kOwner]:'')||'').trim(),project:String((kProj?r[kProj]:'')||'').trim(),status:normStatus(kStatus?r[kStatus]:''),severity:normSev(kSev?r[kSev]:'')});
       }
     });
