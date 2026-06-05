@@ -272,8 +272,14 @@ const SUPABASE_KEY='sb_publishable_GVE5aoY-ckfNbefdcJHXhg_5ramPbt5';
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 document.getElementById('yr').textContent=new Date().getFullYear();
 
-let DATA=[]; // {category,phase,action,owner,project}
-let FILT={row:'all',col:'all'};
+let DATA=[]; // {id,category,phase,action,owner,project,status,severity}
+let FILT={row:'all',col:'all',status:'all',sev:'all'};
+const STATUSES=['pending','inprogress','escalated','completed'];
+const SEVERITIES=['low','medium','high','critical'];
+const STATUS_LABEL={pending:'Pending',inprogress:'In Progress',escalated:'Escalated',completed:'Completed'};
+const SEV_LABEL={low:'Low',medium:'Medium',high:'High',critical:'Critical'};
+function normStatus(v){const s=String(v||'').toLowerCase().replace(/[\s_-]/g,'');if(s.includes('progress'))return'inprogress';if(s.includes('escal'))return'escalated';if(s.includes('complet')||s==='done')return'completed';return'pending'}
+function normSev(v){const s=String(v||'').toLowerCase().trim();if(s.startsWith('crit'))return'critical';if(s.startsWith('high'))return'high';if(s.startsWith('low'))return'low';return'medium'}
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2400)}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -284,7 +290,7 @@ async function loadCloud(){
   try{
     const {data,error}=await sb.from('transformation_plan').select('*').order('created_at',{ascending:true});
     if(error) throw error;
-    DATA=(data||[]).map(r=>({category:r.category,phase:r.phase,action:r.action,owner:r.owner||'',project:r.project||''}));
+    DATA=(data||[]).map(r=>({id:r.id,category:r.category,phase:r.phase,action:r.action,owner:r.owner||'',project:r.project||'',status:normStatus(r.status),severity:normSev(r.severity)}));
     render();
   }catch(e){console.error(e);toast('Cloud load failed — showing local view')}
 }
@@ -314,23 +320,48 @@ function render(){
   rowsShow.forEach(rk=>{
     html+=`<div class="rh ${rk.toLowerCase()}">${rk}</div>`;
     colsShow.forEach(c=>{
-      const items=DATA.filter(r=>r.category===rk && r.phase===c.k);
+      const items=DATA.filter(r=>r.category===rk && r.phase===c.k
+        && (FILT.status==='all'||r.status===FILT.status)
+        && (FILT.sev==='all'||r.severity===FILT.sev));
       const phaseTag=c.k+'D';
       if(items.length===0){
         html+=`<div class="cell ${rk.toLowerCase()}"><span class="ptag">${phaseTag}</span><div class="emp">No items yet</div></div>`;
       }else{
-        const lis=items.slice(0,6).map(it=>`<li>${esc(it.action)}${showOwn && it.owner?`<span class="own">→ ${esc(it.owner)}${it.project?' · '+esc(it.project):''}</span>`:''}</li>`).join('');
-        const more=items.length>6?`<li style="opacity:.6;font-style:italic">+ ${items.length-6} more…</li>`:'';
-        html+=`<div class="cell ${rk.toLowerCase()}"><span class="ptag">${phaseTag}</span><ul>${lis}${more}</ul></div>`;
+        const lis=items.map(it=>{
+          const ownHtml=showOwn && it.owner?`<span class="own">→ ${esc(it.owner)}${it.project?' · '+esc(it.project):''}</span>`:'';
+          const meta=`<span class="meta">`
+            +`<span class="badge st-${it.status}" data-cycle="status" data-id="${it.id}" title="Click to cycle status">${STATUS_LABEL[it.status]}</span>`
+            +`<span class="badge sv-${it.severity}" data-cycle="severity" data-id="${it.id}" title="Click to cycle severity">${SEV_LABEL[it.severity]}</span>`
+            +`</span>`;
+          return `<li>${esc(it.action)}${ownHtml}${meta}</li>`;
+        }).join('');
+        html+=`<div class="cell ${rk.toLowerCase()}"><span class="ptag">${phaseTag}</span><ul>${lis}</ul></div>`;
       }
     });
   });
   m.innerHTML=html;
+  m.querySelectorAll('.badge[data-cycle]').forEach(b=>b.onclick=()=>cycleBadge(b.dataset.id,b.dataset.cycle));
+}
+
+async function cycleBadge(id,field){
+  const row=DATA.find(r=>r.id===id);if(!row)return;
+  const list=field==='status'?STATUSES:SEVERITIES;
+  const cur=row[field==='status'?'status':'severity'];
+  const next=list[(list.indexOf(cur)+1)%list.length];
+  if(field==='status')row.status=next;else row.severity=next;
+  render();
+  try{
+    const patch=field==='status'?{status:next}:{severity:next};
+    const {error}=await sb.from('transformation_plan').update(patch).eq('id',id);
+    if(error)throw error;
+  }catch(e){toast('Save failed: '+e.message)}
 }
 
 // Filters
 document.querySelectorAll('.chip[data-row]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-row]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.row=b.dataset.row;render()});
 document.querySelectorAll('.chip[data-col]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-col]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.col=b.dataset.col;render()});
+document.querySelectorAll('.chip[data-status]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-status]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.status=b.dataset.status;render()});
+document.querySelectorAll('.chip[data-sev]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-sev]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.sev=b.dataset.sev;render()});
 document.getElementById('ownToggle').onchange=render;
 
 // Upload
@@ -357,13 +388,15 @@ async function handleFile(f){
     const kAction=find('suggestedsolution','solution','action','recommendation');
     const kOwner=find('owner','assigned');
     const kProj=find('project');
+    const kStatus=find('status');
+    const kSev=find('severity','priority');
     const parsed=[];
     rows.forEach(r=>{
       const cat=normCat(kCat?r[kCat]:'');
       const ph=normPhase(kPhase?r[kPhase]:'');
       const act=(kAction?r[kAction]:'')||'';
       if(cat && ph && String(act).trim()){
-        parsed.push({category:cat,phase:ph,action:String(act).trim(),owner:String((kOwner?r[kOwner]:'')||'').trim(),project:String((kProj?r[kProj]:'')||'').trim()});
+        parsed.push({category:cat,phase:ph,action:String(act).trim(),owner:String((kOwner?r[kOwner]:'')||'').trim(),project:String((kProj?r[kProj]:'')||'').trim(),status:normStatus(kStatus?r[kStatus]:''),severity:normSev(kSev?r[kSev]:'')});
       }
     });
     if(!parsed.length){toast('No valid rows found (need Gap Area, Term, Suggested Solution)');document.getElementById('upStatus').textContent='';return}
