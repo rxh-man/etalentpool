@@ -1,1066 +1,392 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>e& Governance — Talent Pool</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>e& Enterprise — IoT & NOC 30·60·90 Transformation Plan</title>
+<meta name="description" content="Executive 30-60-90 day transformation plan for IoT & NOC at e& Enterprise." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%238B0000'/%3E%3Ctext x='50%25' y='58%25' font-family='Sora,Arial' font-size='34' font-weight='800' text-anchor='middle' fill='white'%3Ee%26amp;%3C/text%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-:root{
-  --maroon:#800000;
-  --maroon-2:#A0182B;
-  --maroon-deep:#4D0010;
-  --gold:#C9A84C;
-  --gold-2:#E6C66A;
-  --ink:#140A0C;
-  --ink-2:#22141A;
-  --line:#ECE2E4;
-  --line-strong:#D4BFC4;
-  --bg:#F8F4F4;
-  --surface:#FFFFFF;
-  --muted:#776068;
-  --green:#16794C;
-  --green-bg:#E3F3EC;
-  --red:#B42318;
-  --red-bg:#FBE7E4;
-  --amber:#8A5A00;
-  --amber-bg:#FBEFD0;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
-h1,h2,h3,h4,h5,.font-display{font-family:'Sora',sans-serif;letter-spacing:-0.01em;font-weight:700;color:var(--ink)}
-button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
-input,select,textarea{font-family:inherit;font-size:14px;color:var(--ink)}
-a{color:inherit;text-decoration:none}
+  :root{
+    --bg:#ffffff; --ink:#0d0d12; --muted:#6b7280; --line:#e6e6ea;
+    --maroon:#8B0000; --maroon-2:#6a0000; --gold:#C9A84C;
+    --blue:#1f4fd0; --green:#138a51; --card:#0f0f14; --card-soft:#16161d;
+    --grid:rgba(15,15,20,.04);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  body{
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:48px 48px,48px 48px;
+    background-position:-1px -1px,-1px -1px;
+  }
+  a{color:inherit}
+  h1,h2,h3,h4{font-family:'Sora',sans-serif;letter-spacing:-.01em;margin:0}
+  .wrap{max-width:1320px;margin:0 auto;padding:0 28px}
+  /* TOP BAR */
+  .top{display:flex;align-items:center;justify-content:space-between;padding:18px 0;border-bottom:1px solid var(--line);background:rgba(255,255,255,.85);backdrop-filter:saturate(140%) blur(6px);position:sticky;top:0;z-index:50}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand .mark{width:44px;height:44px;border-radius:10px;background:var(--maroon);display:grid;place-items:center;color:#fff;font-family:'Sora';font-weight:800;font-size:22px;box-shadow:0 6px 18px rgba(139,0,0,.25)}
+  .brand .t{line-height:1.1}
+  .brand .t b{font-family:'Sora';font-weight:800;font-size:18px;letter-spacing:.2px}
+  .brand .t small{display:block;color:var(--muted);font-size:12px;margin-top:2px;letter-spacing:.16em;text-transform:uppercase}
+  .nav{display:flex;align-items:center;gap:10px}
+  .nav a.btn{padding:10px 16px;border:1px solid var(--line);background:#fff;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;color:var(--ink);transition:all .15s}
+  .nav a.btn:hover{border-color:var(--maroon);color:var(--maroon)}
+  .nav a.btn.primary{background:var(--maroon);color:#fff;border-color:var(--maroon)}
+  .nav a.btn.primary:hover{background:var(--maroon-2)}
 
-.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
-.sidebar{background:var(--maroon-deep);color:#fff;display:flex;flex-direction:column;border-right:1px solid #000}
-.brand{display:flex;align-items:center;gap:10px;padding:22px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
-.brand-mark{width:38px;height:38px;background:var(--gold);color:var(--maroon-deep);display:grid;place-items:center;font-family:'Sora';font-weight:800;font-size:20px}
-.brand-text{font-family:'Sora';font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#fff;line-height:1.2}
-.brand-text small{display:block;color:var(--gold-2);font-size:10px;letter-spacing:.18em;font-weight:500;margin-top:3px}
-.nav{padding:14px 10px;flex:1;overflow:auto}
-.nav-section{font-size:10px;letter-spacing:.18em;color:rgba(255,255,255,.45);padding:14px 12px 6px;text-transform:uppercase;font-weight:600}
-.nav button{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:10px 12px;color:rgba(255,255,255,.78);font-size:13.5px;font-weight:500;border-left:2px solid transparent;transition:all .15s}
-.nav button:hover{color:#fff;background:rgba(255,255,255,.04)}
-.nav button.active{color:#fff;background:linear-gradient(90deg,rgba(201,168,76,.18),transparent);border-left-color:var(--gold)}
-.nav svg{width:17px;height:17px;flex-shrink:0;stroke-width:1.8}
-.sidebar-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.05em}
+  /* HERO */
+  .hero{padding:54px 0 28px}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--maroon);font-weight:700}
+  .eyebrow::before{content:"";width:28px;height:2px;background:var(--maroon)}
+  h1.hero-title{font-size:54px;line-height:1.05;margin:14px 0 12px;font-weight:800}
+  h1.hero-title .accent{color:var(--maroon)}
+  .sub{color:#3a3a44;font-size:18px;max-width:760px}
+  .sub b{color:var(--maroon);font-weight:600}
 
-.main{display:flex;flex-direction:column;min-width:0}
-.topbar{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 28px;gap:24px;position:sticky;top:0;z-index:20}
-.topbar .page-title{font-family:'Sora';font-weight:600;font-size:15px}
-.topbar .crumb{color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-right:8px}
-.topbar .spacer{flex:1}
-.user-chip{display:flex;align-items:center;gap:10px;padding:6px 10px 6px 6px;border:1px solid var(--line);background:#fff}
-.user-avatar{width:30px;height:30px;background:var(--maroon);color:#fff;display:grid;place-items:center;font-weight:700;font-family:'Sora';font-size:12px}
-.user-meta{line-height:1.15}
-.user-meta .nm{font-weight:600;font-size:13px}
-.user-meta .rl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-.role-badge{font-size:10px;font-weight:700;letter-spacing:.1em;padding:3px 7px;background:var(--gold);color:var(--maroon-deep);text-transform:uppercase}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;font-weight:600;font-size:13px;border:1px solid var(--line-strong);background:#fff;color:var(--ink);transition:all .15s}
-.btn:hover{border-color:var(--maroon);color:var(--maroon)}
-.btn-primary{background:var(--maroon);color:#fff;border-color:var(--maroon)}
-.btn-primary:hover{background:var(--maroon-2);border-color:var(--maroon-2);color:#fff}
-.btn-gold{background:var(--gold);color:var(--maroon-deep);border-color:var(--gold)}
-.btn-gold:hover{background:var(--gold-2);border-color:var(--gold-2);color:var(--maroon-deep)}
-.btn-danger{color:var(--red);border-color:#E8C0BB}
-.btn-danger:hover{background:var(--red);color:#fff;border-color:var(--red)}
-.btn-sm{padding:6px 10px;font-size:12px}
-.btn svg{width:15px;height:15px;stroke-width:2}
+  /* KPI CARDS */
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 22px 20px;position:relative;overflow:hidden;transition:transform .2s, box-shadow .2s}
+  .kpi:hover{transform:translateY(-2px);box-shadow:0 18px 40px -24px rgba(0,0,0,.18)}
+  .kpi .lbl{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .kpi .num{font-family:'Sora';font-weight:800;font-size:64px;line-height:1;margin:10px 0 6px;color:var(--ink)}
+  .kpi .note{font-size:13px;color:var(--muted)}
+  .kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--maroon)}
+  .kpi.b::after{background:var(--blue)} .kpi.g::after{background:var(--green)} .kpi.y::after{background:var(--gold)}
 
-.content{padding:24px 28px 60px;max-width:100%}
-.page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;gap:18px;flex-wrap:wrap}
-.page-head h1{font-size:24px}
-.page-head .sub{color:var(--muted);font-size:13px;margin-top:4px}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
+  /* PHASE BANNERS */
+  .phases{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:22px}
+  .pb{position:relative;border-radius:14px;padding:22px;border:1px solid var(--line);background:#fff;overflow:hidden;display:flex;justify-content:space-between;align-items:flex-end;min-height:130px}
+  .pb .lbl{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .pb .ttl{font-family:'Sora';font-weight:700;font-size:22px;margin-top:8px}
+  .pb .ttl small{display:block;color:var(--muted);font-weight:500;font-size:13px;letter-spacing:.06em;margin-top:4px}
+  .pb .num{font-family:'Sora';font-weight:800;font-size:54px;line-height:1;color:rgba(0,0,0,.08)}
+  .pb.bl{border-top:4px solid var(--blue)} .pb.gd{border-top:4px solid var(--gold)} .pb.gr{border-top:4px solid var(--green)}
+  .pb.bl .ttl::first-letter,.pb.gd .ttl::first-letter,.pb.gr .ttl::first-letter{font-weight:800}
 
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
-.kpi{background:#fff;border:1px solid var(--line);padding:18px 18px 16px;position:relative;overflow:hidden}
-.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--maroon)}
-.kpi.gold::before{background:var(--gold)}
-.kpi.green::before{background:var(--green)}
-.kpi.ink::before{background:var(--ink)}
-.kpi .label{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.kpi .value{font-family:'Sora';font-weight:700;font-size:30px;margin-top:8px;letter-spacing:-.02em}
-.kpi .meta{font-size:12px;color:var(--muted);margin-top:4px}
+  /* SECTION TITLE */
+  .section{padding:48px 0 28px}
+  .sec-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:24px;flex-wrap:wrap}
+  .sec-head h2{font-size:34px;font-weight:800}
+  .sec-head .desc{color:var(--muted);max-width:580px;margin-top:6px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .chip{padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#444;transition:all .15s}
+  .chip:hover{border-color:var(--maroon);color:var(--maroon)}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:8px}
+  .toggle input{accent-color:var(--maroon)}
 
-.grid-charts{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-bottom:22px}
-.card{background:#fff;border:1px solid var(--line);padding:18px}
-.card h3{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
-.card h3 .hint{font-size:10.5px;color:var(--muted);letter-spacing:.1em;font-weight:500}
-.col-4{grid-column:span 4}
-.col-6{grid-column:span 6}
-.col-8{grid-column:span 8}
-.col-12{grid-column:span 12}
-.chart-wrap{position:relative;height:260px}
-.chart-wrap.tall{height:300px}
+  /* MATRIX */
+  .matrix{display:grid;grid-template-columns:130px 1fr 1fr 1fr;gap:12px;margin-top:8px}
+  .mh{font-family:'Sora';font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--ink);padding:12px 14px;border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center}
+  .mh.empty{background:transparent}
+  .mh.bl{background:var(--blue)} .mh.gd{background:#9c8233;color:#fff} .mh.gr{background:var(--green)}
+  .mh small{display:block;font-size:10px;font-weight:500;letter-spacing:.18em;opacity:.85;margin-top:3px}
+  .rh{font-family:'Sora';font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:#fff;border-radius:10px;padding:14px 12px;display:flex;align-items:center;justify-content:center;text-align:center;background:#1a1a22;position:relative}
+  .rh.people{background:#2b231a;border-left:4px solid var(--gold)}
+  .rh.process{background:#1a2236;border-left:4px solid var(--blue)}
+  .rh.systems{background:#1a2a22;border-left:4px solid var(--green)}
+  .cell{background:var(--card);color:#e7e7ee;border-radius:12px;padding:14px 16px 12px;position:relative;border:1px solid #20202a;min-height:120px;display:flex;flex-direction:column;gap:8px}
+  .cell.people{border-left:4px solid var(--gold)}
+  .cell.process{border-left:4px solid var(--blue)}
+  .cell.systems{border-left:4px solid var(--green)}
+  .cell .ptag{position:absolute;top:10px;right:10px;font-size:9px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;color:#0d0d12;background:#e7e7ee;padding:3px 7px;border-radius:6px}
+  .cell ul{margin:0;padding:0 0 0 14px;list-style:none}
+  .cell li{font-size:12.5px;line-height:1.45;color:#d6d6df;padding:5px 0;border-bottom:1px dashed #2a2a35;position:relative;padding-left:14px}
+  .cell li:last-child{border-bottom:0}
+  .cell li::before{content:"";position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:2px;background:currentColor;opacity:.6}
+  .cell.people li::before{background:var(--gold)}
+  .cell.process li::before{background:var(--blue)}
+  .cell.systems li::before{background:var(--green)}
+  .cell .own{display:block;font-size:10px;color:#8c8c9c;margin-top:2px;letter-spacing:.04em}
+  .cell .emp{color:#5e5e6a;font-size:12px;text-align:center;margin:auto;font-style:italic}
+  .actions{display:flex;gap:8px}
+  .btn-x{padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:#fff;font-weight:600;font-size:12px;cursor:pointer;color:var(--ink);transition:all .15s;font-family:inherit}
+  .btn-x:hover{border-color:var(--maroon);color:var(--maroon)}
+  .btn-x.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .btn-x.dark:hover{background:#000;color:#fff}
 
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:14px;background:#fff;border:1px solid var(--line);border-bottom:0}
-.search{flex:1;min-width:240px;position:relative}
-.search input{width:100%;padding:9px 12px 9px 34px;border:1px solid var(--line-strong);background:#fff;outline:none}
-.search input:focus{border-color:var(--maroon)}
-.search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--muted)}
-.select{padding:9px 10px;border:1px solid var(--line-strong);background:#fff;font-size:13px;min-width:140px}
-.select:focus{outline:none;border-color:var(--maroon)}
+  /* UPLOAD (hidden, small) */
+  .upload-zone{margin:80px 0 30px;padding-top:24px;border-top:1px dashed var(--line)}
+  .up-toggle{font-size:11px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px;letter-spacing:.18em;text-transform:uppercase;font-weight:600}
+  .up-toggle:hover{color:var(--maroon)}
+  .up-panel{display:none;margin-top:16px;padding:18px;border:1px dashed #c8c8d0;border-radius:12px;background:#fafafa}
+  .up-panel.open{display:block}
+  .drop{border:2px dashed #c5c5d0;border-radius:12px;padding:28px;text-align:center;background:#fff;cursor:pointer;transition:all .15s}
+  .drop:hover,.drop.drag{border-color:var(--maroon);background:#fff5f5}
+  .drop b{display:block;font-size:14px;color:var(--ink);margin-bottom:4px}
+  .drop small{color:var(--muted);font-size:12px}
+  .up-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center}
 
-.table-wrap{background:#fff;border:1px solid var(--line);overflow-x:auto}
-table.data{width:100%;border-collapse:collapse;font-size:13px;min-width:1100px}
-table.data thead th{background:#FAF4F5;color:var(--ink-2);text-align:left;padding:11px 12px;font-weight:600;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--line);cursor:pointer;user-select:none;white-space:nowrap}
-table.data tbody td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
-table.data tbody tr{cursor:pointer;transition:background .12s}
-table.data tbody tr:hover{background:#FBF7F8}
-table.data .num{font-variant-numeric:tabular-nums}
-.badge{display:inline-block;padding:3px 8px;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
-.badge.pass{background:var(--green-bg);color:var(--green)}
-.badge.fail{background:var(--red-bg);color:var(--red)}
-.badge.hold{background:var(--amber-bg);color:var(--amber)}
-.badge.neutral{background:#EDE4E6;color:var(--ink-2)}
-.tag{display:inline-block;padding:2px 7px;font-size:11px;background:#F1E7EA;color:var(--maroon-deep);border:1px solid var(--line)}
+  /* FOOTER */
+  footer{padding:32px 0 40px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);margin-top:30px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 
-.pager{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#fff;border:1px solid var(--line);border-top:0;font-size:13px;color:var(--muted)}
-.pages{display:flex;gap:4px}
-.pages button{padding:5px 10px;border:1px solid var(--line);background:#fff;font-size:12.5px;min-width:32px}
-.pages button:hover:not(:disabled){border-color:var(--maroon);color:var(--maroon)}
-.pages button.active{background:var(--maroon);color:#fff;border-color:var(--maroon)}
-.pages button:disabled{opacity:.4;cursor:not-allowed}
-
-.empty{background:#fff;border:1px dashed var(--line-strong);padding:48px 24px;text-align:center}
-.empty .icon{width:54px;height:54px;background:#F4ECEE;color:var(--maroon);display:grid;place-items:center;margin:0 auto 14px}
-.empty h3{font-size:16px;margin-bottom:6px}
-.empty p{color:var(--muted);font-size:13px;margin-bottom:14px}
-
-.upload-zone{background:#fff;border:2px dashed var(--line-strong);padding:46px;text-align:center;cursor:pointer;transition:all .15s}
-.upload-zone:hover,.upload-zone.drag{border-color:var(--maroon);background:#FBF6F7}
-.upload-zone .ic{width:54px;height:54px;background:var(--maroon);color:var(--gold);display:grid;place-items:center;margin:0 auto 14px}
-.upload-zone h3{font-size:16px;margin-bottom:4px}
-.upload-zone p{color:var(--muted);font-size:13px}
-.hide{display:none}
-
-.panel-back{position:fixed;inset:0;background:rgba(20,10,12,.4);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
-.panel-back.open{opacity:1;pointer-events:auto}
-.panel{position:fixed;top:0;right:0;bottom:0;width:480px;max-width:100vw;background:#fff;z-index:50;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);border-left:1px solid var(--line);display:flex;flex-direction:column}
-.panel.open{transform:translateX(0)}
-.panel-head{padding:22px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-.panel-head h2{font-size:18px}
-.panel-head .sub{color:var(--muted);font-size:12.5px;margin-top:4px}
-.panel-head .close{width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--line);color:var(--muted)}
-.panel-body{padding:20px 24px;overflow-y:auto;flex:1}
-.kv{display:grid;grid-template-columns:140px 1fr;gap:10px 14px;font-size:13.5px}
-.kv dt{color:var(--muted);font-weight:500}
-.kv dd{color:var(--ink);font-weight:500;word-break:break-word}
-.divider{height:1px;background:var(--line);margin:18px 0}
-
-.modal-back{position:fixed;inset:0;background:rgba(20,10,12,.5);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-back.open{display:flex}
-.modal{background:#fff;width:100%;max-width:480px;padding:26px}
-.modal h2{font-size:18px;margin-bottom:6px}
-.modal .field{margin:14px 0}
-.modal label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;font-weight:600}
-.modal input,.modal select{width:100%;padding:9px 11px;border:1px solid var(--line-strong)}
-.modal input:focus,.modal select:focus{outline:none;border-color:var(--maroon)}
-.modal .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
-
-.set-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;font-weight:600}
-.field input{width:100%;padding:9px 11px;border:1px solid var(--line-strong)}
-.field input:focus{outline:none;border-color:var(--maroon)}
-
-#toasts{position:fixed;bottom:20px;right:20px;z-index:100;display:flex;flex-direction:column;gap:8px}
-.toast{background:var(--ink);color:#fff;padding:11px 16px;font-size:13px;border-left:3px solid var(--gold);box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:340px}
-.toast.ok{border-left-color:var(--green)}
-.toast.err{border-left-color:var(--red)}
-
-.login-wrap{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,var(--maroon-deep) 0%,var(--maroon) 60%,#2A0008 100%);padding:24px}
-.login-card{background:#fff;width:100%;max-width:420px;padding:36px;border-top:3px solid var(--gold);box-shadow:0 24px 60px rgba(0,0,0,.3)}
-.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid var(--line)}
-.login-logo .m{width:46px;height:46px;background:var(--maroon-deep);color:var(--gold);display:grid;place-items:center;font-family:Sora;font-weight:800;font-size:22px}
-.login-logo .t{font-family:Sora;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink)}
-.login-logo .t small{display:block;color:var(--muted);font-size:10px;font-weight:500;letter-spacing:.14em;margin-top:3px}
-.login-card h1{font-size:22px;margin-bottom:5px}
-.login-card p.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
-.login-card form .field{margin-bottom:14px}
-.login-card form .btn{width:100%;justify-content:center;padding:11px}
-.login-card .err{background:var(--red-bg);color:var(--red);padding:10px 12px;font-size:13px;margin-bottom:14px;border-left:3px solid var(--red)}
-.login-foot{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);text-align:center;font-size:11px;color:var(--muted);letter-spacing:.06em}
-
-.menu-btn{display:none}
-@media(max-width:900px){
-  .app{grid-template-columns:1fr}
-  .sidebar{position:fixed;top:0;bottom:0;left:0;width:248px;transform:translateX(-100%);transition:transform .2s;z-index:30}
-  .sidebar.open{transform:translateX(0)}
-  .menu-btn{display:inline-flex}
-  .kpis{grid-template-columns:repeat(2,1fr)}
-  .col-4,.col-6,.col-8{grid-column:span 12}
-  .set-grid{grid-template-columns:1fr}
-  .panel{width:100%}
-}
+  @media (max-width:1000px){
+    h1.hero-title{font-size:38px}
+    .kpis,.phases{grid-template-columns:1fr 1fr}
+    .matrix{grid-template-columns:1fr;gap:8px}
+    .mh.empty,.mh{display:none}
+    .rh{justify-content:flex-start;padding:10px 14px}
+  }
+  @media (max-width:640px){
+    .kpis,.phases{grid-template-columns:1fr}
+    .wrap{padding:0 18px}
+    .top{padding:12px 0}
+    h1.hero-title{font-size:30px}
+  }
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;z-index:200;box-shadow:0 18px 40px rgba(0,0,0,.25);opacity:0;transform:translateY(8px);transition:all .2s}
+  .toast.show{opacity:1;transform:translateY(0)}
 </style>
 </head>
 <body>
-<div id="root"></div>
-<div id="toasts"></div>
+<header class="top">
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%">
+    <div class="brand">
+      <div class="mark">e&amp;</div>
+      <div class="t"><b>e&amp; Enterprise</b><small>Governance · IoT &amp; NOC</small></div>
+    </div>
+    <nav class="nav">
+      <a class="btn" href="#plan">Plan</a>
+      <a class="btn primary" href="./talent-pool.html">Talent Portal →</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero wrap">
+  <div class="eyebrow">CBO Office · Executive Briefing</div>
+  <h1 class="hero-title">IoT &amp; NOC <span class="accent">30·60·90</span> Day<br/>Transformation Plan</h1>
+  <p class="sub"><b>People · Process · Systems.</b> A structured, time-boxed program to close operational gaps, automate KPIs, and elevate NOC service maturity across the e&amp; ecosystem.</p>
+
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">Active Projects</div><div class="num" id="kProjects">—</div><div class="note">Distinct project initiatives tracked</div></div>
+    <div class="kpi b"><div class="lbl">Action Points</div><div class="num" id="kActions">—</div><div class="note">Identified gaps &amp; suggested solutions</div></div>
+    <div class="kpi g"><div class="lbl">Phases</div><div class="num">3</div><div class="note">Foundation · Enablement · Excellence+</div></div>
+  </div>
+
+  <div class="phases">
+    <div class="pb bl">
+      <div><div class="lbl">Phase 1</div><div class="ttl">Day 1–30 · Foundation<small>Stabilise · Restructure · Govern</small></div></div>
+      <div class="num" id="pN30">—</div>
+    </div>
+    <div class="pb gd">
+      <div><div class="lbl">Phase 2</div><div class="ttl">Day 31–60 · Enablement<small>Automate · Align · Resource</small></div></div>
+      <div class="num" id="pN60">—</div>
+    </div>
+    <div class="pb gr">
+      <div><div class="lbl">Phase 3</div><div class="ttl">Day 61–90 · Excellence+<small>Scale · Optimise · Secure</small></div></div>
+      <div class="num" id="pN90">—</div>
+    </div>
+  </div>
+</section>
+
+<section class="section wrap" id="plan">
+  <div class="sec-head">
+    <div>
+      <h2>Transformation Plan</h2>
+      <div class="desc">A consolidated matrix of suggested solutions across People, Process and Systems for each phase.</div>
+    </div>
+    <div class="filters">
+      <span style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-right:4px">Rows:</span>
+      <button class="chip on" data-row="all">All</button>
+      <button class="chip" data-row="People">People</button>
+      <button class="chip" data-row="Process">Process</button>
+      <button class="chip" data-row="Systems">Systems</button>
+      <span style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 4px 0 10px">Cols:</span>
+      <button class="chip on" data-col="all">All</button>
+      <button class="chip" data-col="30">30</button>
+      <button class="chip" data-col="60">60</button>
+      <button class="chip" data-col="90">90</button>
+      <label class="toggle"><input type="checkbox" id="ownToggle" checked />Show owners</label>
+      <div class="actions" style="margin-left:8px">
+        <button class="btn-x" onclick="exportPNG()">Export PNG</button>
+        <button class="btn-x dark" onclick="exportPDF()">Export PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="matrix" class="matrix"></div>
+</section>
+
+<section class="wrap upload-zone">
+  <div class="up-toggle" onclick="document.getElementById('upPanel').classList.toggle('open')">⌃ Admin · Upload Action Plan</div>
+  <div id="upPanel" class="up-panel">
+    <div class="drop" id="drop">
+      <b>Drop your transformation plan Excel here</b>
+      <small>.xlsx or .csv · Replaces current plan for everyone (cloud-synced)</small>
+      <input type="file" id="fi" accept=".xlsx,.xls,.csv" style="display:none" />
+    </div>
+    <div class="up-row">
+      <button class="btn-x" onclick="document.getElementById('fi').click()">Choose file</button>
+      <button class="btn-x" onclick="if(confirm('Clear current plan for all users?')) clearCloud()">Clear plan</button>
+      <span style="font-size:11px;color:var(--muted)" id="upStatus"></span>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="wrap">
+  <div>© <span id="yr"></span> e&amp; Enterprise · Governance Team</div>
+  <div>IoT &amp; NOC · 30·60·90 Plan · CBO Office</div>
+</footer>
+
+<div class="toast" id="toast"></div>
 
 <script>
-/* ============================================================
-   e& Governance — Talent Pool (cloud-synced)
-   ============================================================ */
-const SUPABASE_URL = 'https://rbyyzkhlnhhexruxlhtw.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_GVE5aoY-ckfNbefdcJHXhg_5ramPbt5';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL='https://rbyyzkhlnhhexruxlhtw.supabase.co';
+const SUPABASE_KEY='sb_publishable_GVE5aoY-ckfNbefdcJHXhg_5ramPbt5';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+document.getElementById('yr').textContent=new Date().getFullYear();
 
-const NS = 'eand_talent_';
-const LS = {
-  get:(k,d)=>{try{const v=localStorage.getItem(NS+k);return v?JSON.parse(v):d}catch(e){return d}},
-  set:(k,v)=>localStorage.setItem(NS+k,JSON.stringify(v)),
-  del:(k)=>localStorage.removeItem(NS+k),
-};
-const SS = {
-  get:(k,d)=>{try{const v=sessionStorage.getItem(NS+k);return v?JSON.parse(v):d}catch(e){return d}},
-  set:(k,v)=>sessionStorage.setItem(NS+k,JSON.stringify(v)),
-  del:(k)=>sessionStorage.removeItem(NS+k),
-};
+let DATA=[]; // {category,phase,action,owner,project}
+let FILT={row:'all',col:'all'};
 
-const ADMIN = { username:'cmohammad', password:'123786', name:'C. Mohammad', role:'admin' };
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2400)}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function normCat(v){const s=String(v||'').toLowerCase().trim();if(s.startsWith('peop'))return'People';if(s.startsWith('proc'))return'Process';if(s.startsWith('sys'))return'Systems';return null}
+function normPhase(v){const s=String(v||'').toLowerCase();if(s.includes('30'))return'30';if(s.includes('60'))return'60';if(s.includes('90'))return'90';return null}
 
-const state = {
-  user: SS.get('session', null),
-  page: 'dashboard',
-  candidates: [],
-  users: [],
-  settings: LS.get('settings', { portalName:'e& Governance — Talent Pool', logo:null }),
-  filters: { q:'', company:'', status:'', designation:'', attendance:'' },
-  sort: { col:'_idx', dir:'asc' },
-  pageNum: 1,
-  selected: null,
-  charts: {},
-  loaded: false,
-};
-
-function toast(msg, type=''){
-  const t=document.createElement('div');
-  t.className='toast '+(type||'');
-  t.textContent=msg;
-  document.getElementById('toasts').appendChild(t);
-  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300)},3200);
+async function loadCloud(){
+  try{
+    const {data,error}=await sb.from('transformation_plan').select('*').order('created_at',{ascending:true});
+    if(error) throw error;
+    DATA=(data||[]).map(r=>({category:r.category,phase:r.phase,action:r.action,owner:r.owner||'',project:r.project||''}));
+    render();
+  }catch(e){console.error(e);toast('Cloud load failed — showing local view')}
 }
 
-const $ = (s,r=document)=>r.querySelector(s);
-const esc = s => String(s??'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const uid = ()=>Math.random().toString(36).slice(2,10);
-
-function fmtDate(v){
-  if(v===null||v===undefined||v==='') return '';
-  if(typeof v==='number'){
-    const d=new Date(Math.round((v-25569)*86400*1000));
-    if(!isNaN(d)) return d.toISOString().slice(0,10);
-  }
-  const d=new Date(v); if(!isNaN(d)) return d.toISOString().slice(0,10);
-  return String(v);
-}
-function parseScore(v){
-  if(v===null||v===undefined||v==='') return null;
-  const n=parseFloat(String(v).replace(/[^\d.\-]/g,''));
-  return isNaN(n)?null:n;
-}
-function normStatus(v){
-  const s=String(v||'').toLowerCase();
-  if(/pass|select|recommend|approve|short|yes|hire/.test(s)) return 'Passed';
-  if(/fail|reject|not|no\b/.test(s)) return 'Failed';
-  if(/hold|pend|review|wait|maybe/.test(s)) return 'On Hold';
-  return v?String(v).trim():'On Hold';
+function computeKPIs(){
+  const projects=new Set();DATA.forEach(r=>{if(r.project && r.project.trim())projects.add(r.project.trim().toLowerCase())});
+  document.getElementById('kProjects').textContent=projects.size||'0';
+  document.getElementById('kActions').textContent=DATA.length||'0';
+  const c={'30':0,'60':0,'90':0};DATA.forEach(r=>{if(c[r.phase]!=null)c[r.phase]++});
+  document.getElementById('pN30').textContent=c['30'];
+  document.getElementById('pN60').textContent=c['60'];
+  document.getElementById('pN90').textContent=c['90'];
 }
 
-/* ---------- Cloud ---------- */
-// DB columns -> internal field names
-function rowFromDb(r){
-  return {
-    id: r.id,
-    sn: r.sn||'',
-    empId: r.emp_id||'',
-    name: r.candidate_name||'(Unnamed)',
-    company: r.company||'',
-    interviewDate: r.interview_date||'',
-    attendance: r.attendance||'',
-    techKnowledge: r.technical_knowledge||'',
-    commSkill: r.communication_skill||'',
-    drivingLicence: r.driving_licence||'',
-    designation: r.designation||'',
-    recommendedFor: r.recommended_for||'',
-    remarks: r.remarks||'',
-    score: parseScore(r.technical_knowledge),
-    status: normStatus(r.recommended_for),
-    createdAt: r.created_at,
-  };
-}
-function rowToDb(c){
-  return {
-    sn: c.sn||null,
-    emp_id: c.empId||null,
-    candidate_name: c.name||null,
-    company: c.company||null,
-    interview_date: c.interviewDate||null,
-    attendance: c.attendance||null,
-    technical_knowledge: c.techKnowledge||null,
-    communication_skill: c.commSkill||null,
-    driving_licence: c.drivingLicence||null,
-    designation: c.designation||null,
-    recommended_for: c.recommendedFor||null,
-    remarks: c.remarks||null,
-  };
-}
-async function loadCandidates(){
-  const { data, error } = await sb.from('candidates').select('*').order('created_at',{ascending:true});
-  if(error){ console.error(error); toast('Failed to load from cloud','err'); return; }
-  state.candidates = (data||[]).map(rowFromDb);
-  state.loaded = true;
-}
-async function insertCandidates(rows){
-  const payload = rows.map(rowToDb);
-  // chunk to avoid huge payloads
-  const chunkSize=500; let inserted=[];
-  for(let i=0;i<payload.length;i+=chunkSize){
-    const slice=payload.slice(i,i+chunkSize);
-    const { data, error } = await sb.from('candidates').insert(slice).select();
-    if(error){ console.error(error); toast('Cloud insert failed: '+error.message,'err'); return null; }
-    inserted=inserted.concat(data||[]);
-  }
-  return inserted;
-}
-async function clearAllCandidates(){
-  const { error } = await sb.from('candidates').delete().neq('id','00000000-0000-0000-0000-000000000000');
-  if(error){ console.error(error); toast('Cloud clear failed','err'); return false; }
-  return true;
-}
-function subscribeRealtime(){
-  sb.channel('candidates-realtime')
-    .on('postgres_changes',{event:'*',schema:'public',table:'candidates'},async ()=>{
-      await loadCandidates();
-      if(state.user) render();
-    })
-    .subscribe();
-  sb.channel('app-users-realtime')
-    .on('postgres_changes',{event:'*',schema:'public',table:'app_users'},async ()=>{
-      await loadUsers();
-      if(state.user && state.page==='users') render();
-    })
-    .subscribe();
-}
+const ROWS=['People','Process','Systems'];
+const COLS=[{k:'30',t:'Day 1–30',s:'Foundation',c:'bl'},{k:'60',t:'Day 31–60',s:'Enablement',c:'gd'},{k:'90',t:'Day 61–90',s:'Excellence+',c:'gr'}];
 
-async function loadUsers(){
-  const { data, error } = await sb.from('app_users').select('*').order('created_at',{ascending:true});
-  if(error){ console.error(error); return; }
-  state.users = (data||[]).map(u=>({
-    id:u.id, name:u.name, username:u.username, password:u.password,
-    role:u.role, active:u.active, createdAt:(u.created_at||'').slice(0,10)
-  }));
-}
-async function cloudInsertUser(u){
-  const { data, error } = await sb.from('app_users').insert({
-    name:u.name, username:u.username, password:u.password, role:u.role, active:u.active!==false
-  }).select().single();
-  if(error){ toast('Failed to save user: '+error.message,'err'); return null; }
-  return data;
-}
-async function cloudUpdateUser(id, patch){
-  const { error } = await sb.from('app_users').update(patch).eq('id',id);
-  if(error){ toast('Failed to update user: '+error.message,'err'); return false; }
-  return true;
-}
-
-/* ---------- Auth ---------- */
-function login(username,password){
-  if(username===ADMIN.username && password===ADMIN.password){
-    const u={username:ADMIN.username,name:ADMIN.name,role:'admin'};
-    SS.set('session',u); state.user=u; return true;
-  }
-  const u=state.users.find(x=>x.username===username && x.password===password && x.active);
-  if(u){ const s={username:u.username,name:u.name,role:u.role}; SS.set('session',s); state.user=s; return true; }
-  return false;
-}
-function logout(){ SS.del('session'); state.user=null; render(); }
-
-/* ============================================================
-   RENDER
-   ============================================================ */
 function render(){
-  Object.values(state.charts).forEach(c=>{try{c.destroy()}catch(e){}});
-  state.charts={};
-  const root=document.getElementById('root');
-  if(!state.user){ root.innerHTML=renderLogin(); bindLogin(); return; }
-  root.innerHTML = renderShell();
-  bindShell();
-  renderPage();
-}
-
-function renderLogin(){
-  return `
-  <div class="login-wrap">
-    <div class="login-card">
-      <div class="login-logo">
-        <div class="m">e&</div>
-        <div class="t">${esc(state.settings.portalName.split('—')[0]||'e& Governance')}
-          <small>Talent Pool · Internal Portal</small>
-        </div>
-      </div>
-      <h1>Secure Sign-In</h1>
-      <p class="sub">Authorised personnel only. All sessions are logged.</p>
-      <div id="loginErr"></div>
-      <form id="loginForm">
-        <div class="field"><label>Username</label><input id="lu" autocomplete="username" required /></div>
-        <div class="field"><label>Password</label><input id="lp" type="password" autocomplete="current-password" required /></div>
-        <button class="btn btn-primary" type="submit">Sign In →</button>
-      </form>
-      <div class="login-foot">© ${new Date().getFullYear()} e& Group · Governance Team</div>
-    </div>
-  </div>`;
-}
-function bindLogin(){
-  $('#loginForm').addEventListener('submit',e=>{
-    e.preventDefault();
-    const ok=login($('#lu').value.trim(),$('#lp').value);
-    if(ok){ render(); } else {
-      $('#loginErr').innerHTML='<div class="err">Invalid credentials or inactive account.</div>';
-    }
-  });
-}
-
-function navItem(id,label,svg,adminOnly=false){
-  if(adminOnly && state.user.role!=='admin') return '';
-  return `<button data-nav="${id}" class="${state.page===id?'active':''}">${svg}<span>${label}</span></button>`;
-}
-const I = {
-  dash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
-  pool:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="8" r="3"/><path d="M3 21c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="17" cy="7" r="2.5"/><path d="M14.5 14c2.6.5 4.5 2.7 4.5 5.5"/></svg>',
-  upload:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 16V4M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>',
-  users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="8" cy="8" r="3.2"/><path d="M2 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.5 1.6-4.5 4-5"/></svg>',
-  set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
-  out:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
-  menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
-};
-
-function renderShell(){
-  const u=state.user;
-  const titles={dashboard:'Dashboard',pool:'Talent Pool',upload:'Upload Candidates',users:'User Management',settings:'Settings'};
-  return `
-  <div class="app">
-    <aside class="sidebar" id="sidebar">
-      <div class="brand">
-        ${state.settings.logo
-          ? `<img src="${state.settings.logo}" alt="logo" style="width:38px;height:38px;object-fit:contain;background:#fff;padding:2px"/>`
-          : `<div class="brand-mark">e&</div>`}
-        <div class="brand-text">Governance<small>Talent Pool</small></div>
-      </div>
-      <nav class="nav">
-        <div class="nav-section">Overview</div>
-        ${navItem('dashboard','Dashboard',I.dash)}
-        ${navItem('pool','Talent Pool',I.pool)}
-        <div class="nav-section">Administration</div>
-        ${navItem('upload','Upload Candidates',I.upload,true)}
-        ${navItem('users','User Management',I.users,true)}
-        ${navItem('settings','Settings',I.set,true)}
-      </nav>
-      <div class="sidebar-foot">v2.0 · ${state.candidates.length} records · cloud sync</div>
-    </aside>
-    <div class="main">
-      <div class="topbar">
-        <button class="menu-btn btn" id="menuBtn">${I.menu}</button>
-        <div><span class="crumb">e& / Governance</span><span class="page-title">${titles[state.page]||''}</span></div>
-        <div class="spacer"></div>
-        <div class="user-chip">
-          <div class="user-avatar">${esc((u.name||u.username).slice(0,2).toUpperCase())}</div>
-          <div class="user-meta"><div class="nm">${esc(u.name||u.username)}</div><div class="rl">${esc(u.role)}</div></div>
-          <span class="role-badge">${esc(u.role)}</span>
-        </div>
-        <button class="btn btn-sm" id="logoutBtn">${I.out}<span>Logout</span></button>
-      </div>
-      <div class="content" id="pageContent"></div>
-    </div>
-  </div>
-  <div class="panel-back" id="panelBack"></div>
-  <div class="panel" id="panel"></div>
-  <div class="modal-back" id="modal"></div>
-  `;
-}
-function bindShell(){
-  document.querySelectorAll('[data-nav]').forEach(b=>{
-    b.onclick=()=>{state.page=b.dataset.nav;state.selected=null;render();};
-  });
-  $('#logoutBtn').onclick=logout;
-  $('#menuBtn').onclick=()=>$('#sidebar').classList.toggle('open');
-  $('#panelBack').onclick=closePanel;
-}
-
-function renderPage(){
-  const el=$('#pageContent');
-  if(state.page==='dashboard') return renderDashboard(el);
-  if(state.page==='pool') return renderPool(el);
-  if(state.page==='upload') return renderUpload(el);
-  if(state.page==='users') return renderUsers(el);
-  if(state.page==='settings') return renderSettings(el);
-}
-
-function applyFilters(list){
-  const f=state.filters;
-  const q=f.q.toLowerCase().trim();
-  return list.filter(c=>{
-    if(f.company && c.company!==f.company) return false;
-    if(f.status && c.status!==f.status) return false;
-    if(f.designation && c.designation!==f.designation) return false;
-    if(f.attendance && c.attendance!==f.attendance) return false;
-    if(q){
-      const hay=[c.name,c.empId,c.company,c.designation,c.recommendedFor,c.remarks,c.attendance].map(x=>String(x||'').toLowerCase()).join(' ');
-      if(!hay.includes(q)) return false;
-    }
-    return true;
-  });
-}
-
-function computeStats(list){
-  const total=list.length;
-  const passed=list.filter(c=>c.status==='Passed').length;
-  const companies=new Set(list.map(c=>c.company).filter(Boolean));
-  const scores=list.map(c=>c.score).filter(s=>typeof s==='number');
-  const avg=scores.length?(scores.reduce((a,b)=>a+b,0)/scores.length):0;
-  return {total,passed,passRate:total?Math.round(passed/total*100):0,companies:companies.size,avg:avg.toFixed(1)};
-}
-
-function renderDashboard(el){
-  const list=applyFilters(state.candidates);
-  const s=computeStats(list);
-  if(state.candidates.length===0){
-    el.innerHTML=`<div class="page-head"><div><h1>Dashboard</h1><div class="sub">Real-time analytics from your talent pool.</div></div></div>
-    <div class="empty">
-      <div class="icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg></div>
-      <h3>${state.loaded?'No data yet':'Loading from cloud…'}</h3>
-      <p>${state.loaded?'Upload a candidate Excel file to begin populating the analytics dashboard.':'Fetching latest candidates from the shared cloud database.'}</p>
-      ${state.loaded&&state.user.role==='admin'?'<button class="btn btn-primary" id="gotoUpload">Upload Excel File</button>':''}
-    </div>`;
-    const g=$('#gotoUpload'); if(g) g.onclick=()=>{state.page='upload';render();};
-    return;
-  }
-  el.innerHTML=`
-  <div class="page-head">
-    <div><h1>Dashboard</h1><div class="sub">Live analytics across ${list.length.toLocaleString()} candidate${list.length===1?'':'s'}${list.length!==state.candidates.length?` (filtered from ${state.candidates.length})`:''}.</div></div>
-    <div class="actions">
-      <button class="btn" id="resetF">Reset Filters</button>
-      <button class="btn btn-primary" id="goPool">View Talent Pool →</button>
-    </div>
-  </div>
-  <div class="kpis">
-    <div class="kpi"><div class="label">Total Candidates</div><div class="value">${s.total.toLocaleString()}</div><div class="meta">In active pool</div></div>
-    <div class="kpi green"><div class="label">Recommended Rate</div><div class="value">${s.passRate}%</div><div class="meta">${s.passed} recommended</div></div>
-    <div class="kpi gold"><div class="label">Companies</div><div class="value">${s.companies}</div><div class="meta">Unique represented</div></div>
-  </div>
-  <div class="grid-charts">
-    <div class="card col-4"><h3>Recommendation Status<span class="hint">${list.length} records</span></h3><div class="chart-wrap"><canvas id="cStatus"></canvas></div></div>
-    <div class="card col-8"><h3>Top Companies<span class="hint">By candidate count</span></h3><div class="chart-wrap"><canvas id="cCompany"></canvas></div></div>
-    <div class="card col-4"><h3>Attendance Mix<span class="hint">Top 6</span></h3><div class="chart-wrap"><canvas id="cAtt"></canvas></div></div>
-    <div class="card col-8"><h3>Top Designations<span class="hint">Top 8</span></h3><div class="chart-wrap"><canvas id="cDes"></canvas></div></div>
-  </div>`;
-  $('#resetF').onclick=()=>{state.filters={q:'',company:'',status:'',designation:'',attendance:''};render();};
-  $('#goPool').onclick=()=>{state.page='pool';render();};
-  drawCharts(list);
-}
-
-function groupCount(arr,key){
-  const m=new Map();
-  arr.forEach(x=>{const k=x[key]||'Unspecified';m.set(k,(m.get(k)||0)+1);});
-  return [...m.entries()].sort((a,b)=>b[1]-a[1]);
-}
-
-const MAROON='#800000',MAROON2='#A0182B',MAROON_DEEP='#4D0010',GOLD='#C9A84C',GOLD2='#E6C66A',INK='#22141A';
-const PALETTE=[MAROON,GOLD,MAROON2,GOLD2,'#C44A5C','#A4861F','#5B0010','#D8B870'];
-
-function drawCharts(list){
-  Chart.defaults.font.family="'DM Sans',sans-serif";
-  Chart.defaults.font.size=11;
-  Chart.defaults.color='#5A4A50';
-  if(window.ChartDataLabels && !drawCharts._reg){ Chart.register(window.ChartDataLabels); drawCharts._reg=true; }
-
-  const dlBar={anchor:'end',align:'end',color:'#22141A',font:{weight:'700',size:11},formatter:v=>v>0?v:''};
-  const dlPie={color:'#fff',font:{weight:'700',size:12},formatter:(v,ctx)=>{const t=ctx.dataset.data.reduce((a,b)=>a+b,0);const p=t?Math.round(v/t*100):0;return v>0?`${v} (${p}%)`:'';}};
-
-  const st=['Passed','Failed','On Hold'].map(s=>list.filter(c=>c.status===s).length);
-  state.charts.status=new Chart($('#cStatus'),{type:'doughnut',data:{labels:['Recommended','Not Recommended','On Hold'],datasets:[{data:st,backgroundColor:['#16794C','#B42318','#C9A84C'],borderWidth:0}]},options:{cutout:'62%',layout:{padding:8},plugins:{legend:{position:'bottom'},datalabels:dlPie,tooltip:{callbacks:{label:c=>{const t=c.dataset.data.reduce((a,b)=>a+b,0);const p=t?Math.round(c.parsed/t*100):0;return ` ${c.label}: ${c.parsed} (${p}%)`;}}}}}});
-
-  const dep=groupCount(list,'company').slice(0,8);
-  state.charts.company=new Chart($('#cCompany'),{type:'bar',data:{labels:dep.map(d=>d[0]),datasets:[{data:dep.map(d=>d[1]),backgroundColor:GOLD,borderColor:'#A4861F',borderWidth:1}]},options:{indexAxis:'y',layout:{padding:{right:28}},plugins:{legend:{display:false},datalabels:{anchor:'end',align:'right',color:'#22141A',font:{weight:'700',size:11},formatter:v=>v>0?v:''}},scales:{x:{grid:{color:'#F0E6E8'}},y:{grid:{display:false}}}}});
-
-  let att=groupCount(list,'attendance');
-  const top=att.slice(0,6); const other=att.slice(6).reduce((a,b)=>a+b[1],0);
-  const nl=top.map(n=>n[0]).concat(other?['Other']:[]); const nd=top.map(n=>n[1]).concat(other?[other]:[]);
-  state.charts.att=new Chart($('#cAtt'),{type:'doughnut',data:{labels:nl,datasets:[{data:nd,backgroundColor:PALETTE,borderWidth:0}]},options:{cutout:'58%',layout:{padding:8},plugins:{legend:{position:'bottom',labels:{boxWidth:10}},datalabels:dlPie}}});
-
-  const des=groupCount(list,'designation').slice(0,8);
-  state.charts.des=new Chart($('#cDes'),{type:'bar',data:{labels:des.map(p=>p[0]),datasets:[{data:des.map(p=>p[1]),backgroundColor:MAROON2,borderColor:MAROON,borderWidth:1}]},options:{layout:{padding:{top:20}},plugins:{legend:{display:false},datalabels:dlBar},scales:{x:{grid:{display:false},ticks:{maxRotation:35,minRotation:0}},y:{grid:{color:'#F0E6E8'},beginAtZero:true,ticks:{precision:0}}}}});
-}
-
-/* ---------- Talent Pool ---------- */
-function renderPool(el){
-  const list=applyFilters(state.candidates);
-  const sorted=[...list].sort((a,b)=>{
-    const {col,dir}=state.sort; const m=dir==='asc'?1:-1;
-    const av=a[col], bv=b[col];
-    if(av==null&&bv==null) return 0; if(av==null) return 1; if(bv==null) return -1;
-    if(typeof av==='number'&&typeof bv==='number') return (av-bv)*m;
-    return String(av).localeCompare(String(bv))*m;
-  });
-  const per=20;
-  const totalPages=Math.max(1,Math.ceil(sorted.length/per));
-  if(state.pageNum>totalPages) state.pageNum=1;
-  const start=(state.pageNum-1)*per;
-  const slice=sorted.slice(start,start+per);
-
-  const uniq=k=>[...new Set(state.candidates.map(c=>c[k]).filter(Boolean))].sort();
-  const companies=uniq('company'), designations=uniq('designation'), atts=uniq('attendance');
-
-  el.innerHTML=`
-  <div class="page-head">
-    <div><h1>Talent Pool</h1><div class="sub">${list.length} of ${state.candidates.length} candidates · page ${state.pageNum} / ${totalPages}</div></div>
-    <div class="actions">
-      <button class="btn" id="exXlsx">Export Excel</button>
-      <button class="btn btn-gold" id="exPdf">Export PDF</button>
-    </div>
-  </div>
-  <div class="toolbar">
-    <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="qSearch" placeholder="Search name, emp ID, company, designation, remarks…" value="${esc(state.filters.q)}"/>
-    </div>
-    <select class="select" id="fCompany"><option value="">All Companies</option>${companies.map(d=>`<option ${state.filters.company===d?'selected':''}>${esc(d)}</option>`).join('')}</select>
-    <select class="select" id="fStatus"><option value="">All Recommendations</option>${['Passed','Failed','On Hold'].map(s=>`<option ${state.filters.status===s?'selected':''}>${s}</option>`).join('')}</select>
-    <select class="select" id="fDes"><option value="">All Designations</option>${designations.map(p=>`<option ${state.filters.designation===p?'selected':''}>${esc(p)}</option>`).join('')}</select>
-    <select class="select" id="fAtt"><option value="">All Attendance</option>${atts.map(n=>`<option ${state.filters.attendance===n?'selected':''}>${esc(n)}</option>`).join('')}</select>
-  </div>
-  <div class="table-wrap">
-    <table class="data">
-      <thead><tr>
-        ${[['_idx','SN'],['empId','Emp ID'],['name','Candidate Name'],['company','Company'],['interviewDate','Interview Date'],['attendance','Attendance'],['techKnowledge','Tech Knowledge'],['commSkill','Comm Skill'],['drivingLicence','Lic'],['designation','Designation'],['recommendedFor','Recommended For']]
-          .map(([k,l])=>`<th data-sort="${k}">${l}${state.sort.col===k?(state.sort.dir==='asc'?' ▲':' ▼'):''}</th>`).join('')}
-      </tr></thead>
-      <tbody>
-        ${slice.length?slice.map((c,i)=>`
-          <tr data-id="${c.id}">
-            <td class="num">${esc(c.sn||(start+i+1))}</td>
-            <td class="num">${esc(c.empId||'—')}</td>
-            <td><strong>${esc(c.name)}</strong></td>
-            <td>${esc(c.company||'—')}</td>
-            <td class="num">${esc(c.interviewDate||'')}</td>
-            <td>${esc(c.attendance||'—')}</td>
-            <td class="num">${esc(c.techKnowledge||'—')}</td>
-            <td class="num">${esc(c.commSkill||'—')}</td>
-            <td>${esc(c.drivingLicence||'—')}</td>
-            <td>${esc(c.designation||'—')}</td>
-            <td><span class="badge ${c.status==='Passed'?'pass':c.status==='Failed'?'fail':'hold'}">${esc(c.recommendedFor||c.status)}</span></td>
-          </tr>`).join(''):`<tr><td colspan="11" style="padding:40px;text-align:center;color:var(--muted)">No candidates match the current filters.</td></tr>`}
-      </tbody>
-    </table>
-  </div>
-  <div class="pager">
-    <div>Showing ${slice.length?start+1:0}–${start+slice.length} of ${sorted.length}</div>
-    <div class="pages">
-      <button id="pPrev" ${state.pageNum===1?'disabled':''}>‹</button>
-      ${pagerButtons(state.pageNum,totalPages)}
-      <button id="pNext" ${state.pageNum===totalPages?'disabled':''}>›</button>
-    </div>
-  </div>`;
-
-  $('#qSearch').addEventListener('input',e=>{state.filters.q=e.target.value;state.pageNum=1;renderPool(el);});
-  $('#fCompany').onchange=e=>{state.filters.company=e.target.value;state.pageNum=1;renderPool(el);};
-  $('#fStatus').onchange=e=>{state.filters.status=e.target.value;state.pageNum=1;renderPool(el);};
-  $('#fDes').onchange=e=>{state.filters.designation=e.target.value;state.pageNum=1;renderPool(el);};
-  $('#fAtt').onchange=e=>{state.filters.attendance=e.target.value;state.pageNum=1;renderPool(el);};
-  document.querySelectorAll('th[data-sort]').forEach(th=>{
-    th.onclick=()=>{const k=th.dataset.sort;if(state.sort.col===k)state.sort.dir=state.sort.dir==='asc'?'desc':'asc';else{state.sort.col=k;state.sort.dir='asc';}renderPool(el);};
-  });
-  document.querySelectorAll('tr[data-id]').forEach(tr=>{
-    tr.onclick=()=>openCandidate(tr.dataset.id);
-  });
-  $('#pPrev').onclick=()=>{state.pageNum=Math.max(1,state.pageNum-1);renderPool(el);};
-  $('#pNext').onclick=()=>{state.pageNum=Math.min(totalPages,state.pageNum+1);renderPool(el);};
-  document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{state.pageNum=+b.dataset.page;renderPool(el);});
-  $('#exXlsx').onclick=()=>exportXlsx(sorted);
-  $('#exPdf').onclick=()=>exportPdf(sorted);
-}
-function pagerButtons(cur,total){
-  const arr=[]; const window=2;
-  for(let i=1;i<=total;i++){
-    if(i===1||i===total||(i>=cur-window&&i<=cur+window)) arr.push(i);
-    else if(arr[arr.length-1]!=='…') arr.push('…');
-  }
-  return arr.map(p=>p==='…'?'<button disabled>…</button>':`<button data-page="${p}" class="${p===cur?'active':''}">${p}</button>`).join('');
-}
-
-function openCandidate(id){
-  const c=state.candidates.find(x=>x.id===id); if(!c) return;
-  const p=$('#panel'); const b=$('#panelBack');
-  p.innerHTML=`
-    <div class="panel-head">
-      <div>
-        <h2>${esc(c.name)}</h2>
-        <div class="sub">${esc(c.designation||'')}${c.company?' · '+esc(c.company):''}</div>
-      </div>
-      <button class="close" id="pClose"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M6 18L18 6"/></svg></button>
-    </div>
-    <div class="panel-body">
-      <div style="margin-bottom:16px"><span class="badge ${c.status==='Passed'?'pass':c.status==='Failed'?'fail':'hold'}">${esc(c.recommendedFor||c.status)}</span> ${c.score!=null?`<span class="tag" style="margin-left:6px">Tech Score: ${c.score}</span>`:''}</div>
-      <dl class="kv">
-        <dt>SN</dt><dd>${esc(c.sn||'—')}</dd>
-        <dt>Emp ID</dt><dd>${esc(c.empId||'—')}</dd>
-        <dt>Candidate Name</dt><dd>${esc(c.name)}</dd>
-        <dt>Company</dt><dd>${esc(c.company||'—')}</dd>
-        <dt>Interview Date</dt><dd>${esc(c.interviewDate||'—')}</dd>
-        <dt>Attendance</dt><dd>${esc(c.attendance||'—')}</dd>
-        <dt>Technical Knowledge</dt><dd>${esc(c.techKnowledge||'—')}</dd>
-        <dt>Communication Skill</dt><dd>${esc(c.commSkill||'—')}</dd>
-        <dt>Driving Licence</dt><dd>${esc(c.drivingLicence||'—')}</dd>
-        <dt>Designation</dt><dd>${esc(c.designation||'—')}</dd>
-        <dt>Recommended For</dt><dd>${esc(c.recommendedFor||'—')}</dd>
-        <dt>Remarks</dt><dd>${esc(c.remarks||'—')}</dd>
-      </dl>
-    </div>`;
-  p.classList.add('open'); b.classList.add('open');
-  $('#pClose').onclick=closePanel;
-}
-function closePanel(){ $('#panel').classList.remove('open'); $('#panelBack').classList.remove('open'); }
-
-/* ---------- Upload ---------- */
-const SYSTEM_FIELDS=[
-  ['sn','SN'],
-  ['empId','EMP ID'],
-  ['name','CANDIDATE NAME'],
-  ['company','COMPANY'],
-  ['interviewDate','INTERVIEW DATE'],
-  ['attendance','ATTENDANCE'],
-  ['techKnowledge','TECHNICAL KNOWLEDGE'],
-  ['commSkill','COMMUNICATION SKILL'],
-  ['drivingLicence','DRIVING LICENCE'],
-  ['designation','DESIGNATION'],
-  ['recommendedFor','RECOMMENDED FOR'],
-  ['remarks','REMARKS'],
-];
-const AUTO_MAP={
-  sn:['sn','sr','sl','s.no','s no','serial','#'],
-  empId:['emp id','employee id','empid','emp_id','emp.id','employee no'],
-  name:['candidate name','candidate','name','full name','employee name'],
-  company:['company','employer','organisation','organization','firm'],
-  interviewDate:['interview date','date of interview','date','interviewed on'],
-  attendance:['attendance','attended','present','status of attendance'],
-  techKnowledge:['technical knowledge','technical','tech','technical skill','tech knowledge'],
-  commSkill:['communication skill','communication','comm skill','communication skills'],
-  drivingLicence:['driving licence','driving license','licence','license','dl'],
-  designation:['designation','position','role','job title','title'],
-  recommendedFor:['recommended for','recommendation','recommended','status','outcome','result'],
-  remarks:['remarks','comments','notes','remark'],
-};
-function autoMatch(header){
-  const h=String(header||'').toLowerCase().trim().replace(/[._-]+/g,' ').replace(/\s+/g,' ');
-  // exact match first
-  for(const f of SYSTEM_FIELDS){
-    if((AUTO_MAP[f[0]]||[]).some(k=>h===k)) return f[0];
-  }
-  // contains match
-  for(const f of SYSTEM_FIELDS){
-    if((AUTO_MAP[f[0]]||[]).some(k=>h.includes(k))) return f[0];
-  }
-  return '';
-}
-
-let pendingRows=null, pendingHeaders=null;
-
-function renderUpload(el){
-  if(state.user.role!=='admin'){el.innerHTML='<div class="card">You don\'t have access to this page.</div>';return;}
-  el.innerHTML=`
-  <div class="page-head"><div><h1>Upload Candidates</h1><div class="sub">Append candidates from Excel (.xlsx / .xls) — saved to shared cloud, visible to all users instantly.</div></div>
-    <div class="actions"><button class="btn" id="dlTpl">Download Template</button></div>
-  </div>
-  <div class="upload-zone" id="dz">
-    <div class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg></div>
-    <h3>Drop your Excel file here</h3>
-    <p>or click to browse. Accepted: .xlsx, .xls</p>
-    <input type="file" id="fileInp" accept=".xlsx,.xls" style="display:none"/>
-  </div>
-  <div id="mapStep" class="hide" style="margin-top:16px"></div>
-  <div class="card" style="margin-top:18px">
-    <h3>Expected Columns (Excel headers)</h3>
-    <div style="font-size:13px;color:var(--muted);line-height:1.8">
-      ${SYSTEM_FIELDS.map(f=>`<span class="tag" style="margin:0 6px 6px 0;display:inline-block">${esc(f[1])}</span>`).join('')}
-      <div style="margin-top:10px">Column names auto-detect; you can manually map any unmatched fields before import.</div>
-    </div>
-  </div>`;
-  const dz=$('#dz'), inp=$('#fileInp');
-  dz.onclick=()=>inp.click();
-  inp.onchange=e=>handleFile(e.target.files[0]);
-  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
-  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
-  dz.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)handleFile(f);});
-  $('#dlTpl').onclick=downloadTemplate;
-}
-function downloadTemplate(){
-  const headers=SYSTEM_FIELDS.map(f=>f[1]);
-  const ws=XLSX.utils.aoa_to_sheet([headers,[1,'EMP-001','Ahmed Ali','e& Group','2025-01-15','Present',8.5,9,'Yes','Senior Engineer','Recommended','Strong candidate']]);
-  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Candidates');
-  XLSX.writeFile(wb,'eand-talent-pool-template.xlsx');
-}
-function handleFile(file){
-  if(!file) return;
-  const r=new FileReader();
-  r.onload=e=>{
-    try{
-      const wb=XLSX.read(e.target.result,{type:'array'});
-      const ws=wb.Sheets[wb.SheetNames[0]];
-      const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
-      if(!rows.length){toast('Empty sheet','err');return;}
-      pendingHeaders=Object.keys(rows[0]);
-      pendingRows=rows;
-      showMapping();
-    }catch(err){console.error(err);toast('Failed to parse file','err');}
-  };
-  r.readAsArrayBuffer(file);
-}
-function showMapping(){
-  const map={}; pendingHeaders.forEach(h=>map[h]=autoMatch(h));
-  const wrap=$('#mapStep'); wrap.classList.remove('hide');
-  wrap.innerHTML=`<div class="card">
-    <h3>Column Mapping<span class="hint">${pendingRows.length} rows detected</span></h3>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;max-height:340px;overflow:auto;padding-right:6px">
-      ${pendingHeaders.map(h=>`
-        <div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px">${esc(h)}</div>
-          <select class="select" style="width:100%" data-h="${esc(h)}">
-            <option value="">— Ignore —</option>
-            ${SYSTEM_FIELDS.map(f=>`<option value="${f[0]}" ${map[h]===f[0]?'selected':''}>${esc(f[1])}</option>`).join('')}
-          </select>
-        </div>`).join('')}
-    </div>
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px">
-      <button class="btn" id="mapCancel">Cancel</button>
-      <button class="btn btn-primary" id="mapImport">Import ${pendingRows.length} Records to Cloud</button>
-    </div>
-  </div>`;
-  $('#mapCancel').onclick=()=>{pendingRows=null;pendingHeaders=null;wrap.classList.add('hide');wrap.innerHTML='';};
-  $('#mapImport').onclick=async ()=>{
-    const m={}; wrap.querySelectorAll('select[data-h]').forEach(s=>{if(s.value)m[s.dataset.h]=s.value;});
-    await importRows(m);
-  };
-}
-async function importRows(mapping){
-  const added=[];
-  pendingRows.forEach(r=>{
-    const c={};
-    Object.entries(r).forEach(([k,v])=>{
-      const f=mapping[k];
-      if(!f) return;
-      if(f==='interviewDate') c[f]=fmtDate(v);
-      else c[f]=v===''?null:String(v).trim();
+  computeKPIs();
+  const showOwn=document.getElementById('ownToggle').checked;
+  const m=document.getElementById('matrix');
+  const rowsShow=FILT.row==='all'?ROWS:[FILT.row];
+  const colsShow=FILT.col==='all'?COLS:COLS.filter(c=>c.k===FILT.col);
+  m.style.gridTemplateColumns=`130px repeat(${colsShow.length},1fr)`;
+  let html=`<div class="mh empty"></div>`;
+  colsShow.forEach(c=>{html+=`<div class="mh ${c.c}">${c.t}<small>${c.s}</small></div>`});
+  rowsShow.forEach(rk=>{
+    html+=`<div class="rh ${rk.toLowerCase()}">${rk}</div>`;
+    colsShow.forEach(c=>{
+      const items=DATA.filter(r=>r.category===rk && r.phase===c.k);
+      const phaseTag=c.k+'D';
+      if(items.length===0){
+        html+=`<div class="cell ${rk.toLowerCase()}"><span class="ptag">${phaseTag}</span><div class="emp">No items yet</div></div>`;
+      }else{
+        const lis=items.slice(0,6).map(it=>`<li>${esc(it.action)}${showOwn && it.owner?`<span class="own">→ ${esc(it.owner)}${it.project?' · '+esc(it.project):''}</span>`:''}</li>`).join('');
+        const more=items.length>6?`<li style="opacity:.6;font-style:italic">+ ${items.length-6} more…</li>`:'';
+        html+=`<div class="cell ${rk.toLowerCase()}"><span class="ptag">${phaseTag}</span><ul>${lis}${more}</ul></div>`;
+      }
     });
-    if(!c.name) c.name='(Unnamed)';
-    added.push(c);
   });
-  const btn=$('#mapImport'); if(btn){btn.disabled=true;btn.textContent='Saving to cloud…';}
-  const inserted=await insertCandidates(added);
-  if(!inserted){ if(btn){btn.disabled=false;btn.textContent=`Import ${pendingRows.length} Records to Cloud`;} return; }
-  await loadCandidates();
-  toast(`Added ${inserted.length} candidates to the shared pool`,'ok');
-  pendingRows=null; pendingHeaders=null;
-  state.page='pool'; render();
+  m.innerHTML=html;
 }
 
-/* ---------- Users ---------- */
-function renderUsers(el){
-  if(state.user.role!=='admin'){el.innerHTML='<div class="card">Access denied.</div>';return;}
-  el.innerHTML=`
-  <div class="page-head"><div><h1>User Management</h1><div class="sub">${state.users.length} sub-user${state.users.length===1?'':'s'} · admin account is built-in.</div></div>
-    <div class="actions"><button class="btn btn-primary" id="addU">+ Add User</button></div>
-  </div>
-  <div class="table-wrap">
-    <table class="data">
-      <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Date Created</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead>
-      <tbody>
-        <tr><td><strong>${esc(ADMIN.name)}</strong></td><td>${esc(ADMIN.username)}</td><td><span class="badge neutral">Admin</span></td><td>—</td><td><span class="badge pass">Active</span></td><td style="text-align:right;color:var(--muted);font-size:12px">Built-in</td></tr>
-        ${state.users.length?state.users.map(u=>`
-          <tr><td><strong>${esc(u.name)}</strong></td><td>${esc(u.username)}</td>
-            <td><span class="badge neutral">${esc(u.role==='director'?'Director':'Project Manager')}</span></td>
-            <td class="num">${esc(u.createdAt)}</td>
-            <td><span class="badge ${u.active?'pass':'fail'}">${u.active?'Active':'Inactive'}</span></td>
-            <td style="text-align:right">
-              <button class="btn btn-sm" data-edit="${u.id}">Edit</button>
-              <button class="btn btn-sm" data-tog="${u.id}">${u.active?'Deactivate':'Activate'}</button>
-            </td>
-          </tr>`).join(''):''}
-      </tbody>
-    </table>
-  </div>`;
-  $('#addU').onclick=()=>userModal();
-  document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>userModal(b.dataset.edit));
-  document.querySelectorAll('[data-tog]').forEach(b=>b.onclick=async ()=>{
-    const u=state.users.find(x=>x.id===b.dataset.tog); if(!u) return;
-    const next=!u.active;
-    const ok=await cloudUpdateUser(u.id,{active:next});
-    if(ok){ u.active=next; renderUsers(el); toast('User '+(next?'activated':'deactivated'),'ok'); }
-  });
-}
-function userModal(id){
-  const editing=id?state.users.find(u=>u.id===id):null;
-  const m=$('#modal');
-  m.innerHTML=`<div class="modal">
-    <h2>${editing?'Edit User':'Add New User'}</h2>
-    <div class="field"><label>Full Name</label><input id="uName" value="${esc(editing?.name||'')}"/></div>
-    <div class="field"><label>Username</label><input id="uUser" value="${esc(editing?.username||'')}"/></div>
-    <div class="field"><label>Password ${editing?'(leave blank to keep current)':''}</label><input id="uPass" type="password" value=""/></div>
-    <div class="field"><label>Role</label>
-      <select class="select" id="uRole" style="width:100%">
-        <option value="director" ${editing?.role==='director'?'selected':''}>Director — read-only</option>
-        <option value="project_manager" ${editing?.role==='project_manager'?'selected':''}>Project Manager — read-only</option>
-      </select>
-    </div>
-    <div class="actions"><button class="btn" id="uCancel">Cancel</button><button class="btn btn-primary" id="uSave">${editing?'Save Changes':'Create User'}</button></div>
-  </div>`;
-  m.classList.add('open');
-  $('#uCancel').onclick=()=>m.classList.remove('open');
-  $('#uSave').onclick=async ()=>{
-    const name=$('#uName').value.trim(), username=$('#uUser').value.trim(), pass=$('#uPass').value, role=$('#uRole').value;
-    if(!name||!username){toast('Name and username required','err');return;}
-    if(username===ADMIN.username){toast('Username reserved','err');return;}
-    const dup=state.users.find(u=>u.username===username && u.id!==editing?.id);
-    if(dup){toast('Username already exists','err');return;}
-    if(editing){
-      const patch={name,username,role}; if(pass) patch.password=pass;
-      const ok=await cloudUpdateUser(editing.id,patch); if(!ok) return;
-      Object.assign(editing,patch);
-    } else {
-      if(!pass){toast('Password required','err');return;}
-      const row=await cloudInsertUser({name,username,password:pass,role,active:true});
-      if(!row) return;
-      state.users.push({id:row.id,name:row.name,username:row.username,password:row.password,role:row.role,active:row.active,createdAt:(row.created_at||'').slice(0,10)});
-    }
-    m.classList.remove('open'); renderUsers($('#pageContent'));
-    toast(editing?'User updated':'User created','ok');
-  };
-}
+// Filters
+document.querySelectorAll('.chip[data-row]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-row]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.row=b.dataset.row;render()});
+document.querySelectorAll('.chip[data-col]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-col]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.col=b.dataset.col;render()});
+document.getElementById('ownToggle').onchange=render;
 
-/* ---------- Settings ---------- */
-function renderSettings(el){
-  if(state.user.role!=='admin'){el.innerHTML='<div class="card">Access denied.</div>';return;}
-  el.innerHTML=`
-  <div class="page-head"><div><h1>Settings</h1><div class="sub">Manage portal identity and shared cloud data.</div></div></div>
-  <div class="set-grid">
-    <div class="card">
-      <h3>Brand Identity</h3>
-      <div class="field"><label>Portal Display Name</label><input id="sName" value="${esc(state.settings.portalName)}"/></div>
-      <div class="field"><label>Company Logo</label>
-        <div style="display:flex;gap:12px;align-items:center">
-          ${state.settings.logo?`<img src="${state.settings.logo}" style="width:48px;height:48px;object-fit:contain;border:1px solid var(--line);padding:4px;background:#fff"/>`:`<div style="width:48px;height:48px;background:var(--maroon);color:var(--gold);display:grid;place-items:center;font-family:Sora;font-weight:800">e&</div>`}
-          <input type="file" id="sLogo" accept="image/*"/>
-          ${state.settings.logo?'<button class="btn btn-sm btn-danger" id="sLogoRm">Remove</button>':''}
-        </div>
-      </div>
-      <button class="btn btn-primary" id="sSave">Save Changes</button>
-    </div>
-    <div class="card">
-      <h3>Cloud Data</h3>
-      <p style="color:var(--muted);font-size:13px;margin-bottom:14px">Shared pool: <strong>${state.candidates.length}</strong> candidates · ${state.users.length} sub-users (local).</p>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <button class="btn" id="sExport">Export Pool to Excel</button>
-        <button class="btn" id="sRefresh">Refresh from Cloud</button>
-        <button class="btn btn-danger" id="sClear">Clear All Candidate Data (Cloud)</button>
-      </div>
-    </div>
-  </div>`;
-  $('#sLogo').onchange=e=>{
-    const f=e.target.files[0]; if(!f) return;
-    const r=new FileReader(); r.onload=ev=>{state.settings.logo=ev.target.result;LS.set('settings',state.settings);renderSettings(el);toast('Logo updated','ok');render();};
-    r.readAsDataURL(f);
-  };
-  const rm=$('#sLogoRm'); if(rm) rm.onclick=()=>{state.settings.logo=null;LS.set('settings',state.settings);renderSettings(el);};
-  $('#sSave').onclick=()=>{state.settings.portalName=$('#sName').value.trim()||state.settings.portalName;LS.set('settings',state.settings);toast('Settings saved','ok');render();};
-  $('#sExport').onclick=()=>exportXlsx(state.candidates);
-  $('#sRefresh').onclick=async ()=>{ await loadCandidates(); toast('Refreshed from cloud','ok'); render(); };
-  $('#sClear').onclick=()=>{
-    confirmModal('Clear all candidate data?','This permanently removes all '+state.candidates.length+' candidates from the shared cloud. This affects all users and cannot be undone.','Delete All',async ()=>{
-      const ok=await clearAllCandidates();
-      if(ok){ await loadCandidates(); render(); toast('Candidate pool cleared','ok'); }
+// Upload
+const drop=document.getElementById('drop'),fi=document.getElementById('fi');
+drop.onclick=()=>fi.click();
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag')}));
+drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0])});
+fi.onchange=e=>{if(e.target.files[0])handleFile(e.target.files[0])};
+
+async function handleFile(f){
+  document.getElementById('upStatus').textContent='Parsing '+f.name+'…';
+  try{
+    const buf=await f.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+    if(!rows.length){toast('Empty file');document.getElementById('upStatus').textContent='';return}
+    // detect columns flexibly
+    const sample=rows[0];const keys=Object.keys(sample);
+    const find=(...needles)=>keys.find(k=>{const s=k.toLowerCase().replace(/\s+/g,'');return needles.some(n=>s.includes(n))});
+    const kCat=find('gaparea','area','category');
+    const kPhase=find('term','phase','timeline');
+    const kAction=find('suggestedsolution','solution','action','recommendation');
+    const kOwner=find('owner','assigned');
+    const kProj=find('project');
+    const parsed=[];
+    rows.forEach(r=>{
+      const cat=normCat(kCat?r[kCat]:'');
+      const ph=normPhase(kPhase?r[kPhase]:'');
+      const act=(kAction?r[kAction]:'')||'';
+      if(cat && ph && String(act).trim()){
+        parsed.push({category:cat,phase:ph,action:String(act).trim(),owner:String((kOwner?r[kOwner]:'')||'').trim(),project:String((kProj?r[kProj]:'')||'').trim()});
+      }
     });
-  };
-}
-function confirmModal(title,msg,confirmLabel,onOk){
-  const m=$('#modal');
-  m.innerHTML=`<div class="modal">
-    <h2>${esc(title)}</h2>
-    <p style="color:var(--muted);font-size:13.5px;line-height:1.6">${esc(msg)}</p>
-    <div class="actions"><button class="btn" id="cCancel">Cancel</button><button class="btn btn-danger" id="cOk">${esc(confirmLabel)}</button></div>
-  </div>`;
-  m.classList.add('open');
-  $('#cCancel').onclick=()=>m.classList.remove('open');
-  $('#cOk').onclick=()=>{m.classList.remove('open');onOk();};
-}
-
-/* ---------- Export ---------- */
-function exportXlsx(rows){
-  const data=rows.map((c,i)=>({
-    'SN':c.sn||(i+1),
-    'EMP ID':c.empId||'',
-    'CANDIDATE NAME':c.name||'',
-    'COMPANY':c.company||'',
-    'INTERVIEW DATE':c.interviewDate||'',
-    'ATTENDANCE':c.attendance||'',
-    'TECHNICAL KNOWLEDGE':c.techKnowledge||'',
-    'COMMUNICATION SKILL':c.commSkill||'',
-    'DRIVING LICENCE':c.drivingLicence||'',
-    'DESIGNATION':c.designation||'',
-    'RECOMMENDED FOR':c.recommendedFor||'',
-    'REMARKS':c.remarks||'',
-  }));
-  const ws=XLSX.utils.json_to_sheet(data);
-  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Talent Pool');
-  XLSX.writeFile(wb,`eand-talent-pool-${new Date().toISOString().slice(0,10)}.xlsx`);
-  toast('Excel exported','ok');
-}
-function exportPdf(rows){
-  const { jsPDF }=window.jspdf;
-  const doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
-  doc.setFillColor(128,0,0); doc.rect(0,0,842,56,'F');
-  doc.setFillColor(201,168,76); doc.rect(0,56,842,3,'F');
-  doc.setTextColor(201,168,76); doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.text('e&',32,36);
-  doc.setTextColor(255,255,255); doc.setFontSize(12); doc.text(state.settings.portalName,64,36);
-  doc.setFontSize(9); doc.setTextColor(230,198,106); doc.text('Governance · Talent Pool Export',64,50);
-  doc.setTextColor(40,40,40); doc.setFont('helvetica','normal'); doc.setFontSize(9);
-  const f=state.filters;
-  const filterTxt=[
-    f.q&&`Search: "${f.q}"`,f.company&&`Company: ${f.company}`,f.status&&`Status: ${f.status}`,
-    f.designation&&`Designation: ${f.designation}`,f.attendance&&`Attendance: ${f.attendance}`
-  ].filter(Boolean).join(' · ')||'All records';
-  doc.text(`Exported: ${new Date().toLocaleString()}    Records: ${rows.length}    Filters: ${filterTxt}`,32,78);
-  doc.autoTable({
-    startY:92,
-    head:[['SN','EMP ID','Candidate Name','Company','Interview Date','Attendance','Tech','Comm','Lic','Designation','Recommended For','Remarks']],
-    body:rows.map((c,i)=>[c.sn||(i+1),c.empId||'',c.name||'',c.company||'',c.interviewDate||'',c.attendance||'',c.techKnowledge||'',c.commSkill||'',c.drivingLicence||'',c.designation||'',c.recommendedFor||'',c.remarks||'']),
-    styles:{font:'helvetica',fontSize:7.5,cellPadding:4,textColor:30,lineColor:[220,210,212],lineWidth:.4},
-    headStyles:{fillColor:[77,0,16],textColor:[230,198,106],fontStyle:'bold',fontSize:8},
-    alternateRowStyles:{fillColor:[250,244,245]},
-    margin:{left:18,right:18}
-  });
-  doc.save(`eand-talent-pool-${new Date().toISOString().slice(0,10)}.pdf`);
-  toast('PDF exported','ok');
+    if(!parsed.length){toast('No valid rows found (need Gap Area, Term, Suggested Solution)');document.getElementById('upStatus').textContent='';return}
+    document.getElementById('upStatus').textContent='Saving '+parsed.length+' rows to cloud…';
+    await sb.from('transformation_plan').delete().neq('id','00000000-0000-0000-0000-000000000000');
+    // chunk inserts
+    for(let i=0;i<parsed.length;i+=200){
+      const chunk=parsed.slice(i,i+200);
+      const {error}=await sb.from('transformation_plan').insert(chunk);
+      if(error)throw error;
+    }
+    document.getElementById('upStatus').textContent='Synced ✓ '+parsed.length+' rows';
+    toast('Plan uploaded & synced to all users');
+    await loadCloud();
+  }catch(e){console.error(e);toast('Upload failed: '+e.message);document.getElementById('upStatus').textContent='Failed'}
 }
 
-/* ---------- Boot ---------- */
-(async function boot(){
-  render(); // initial paint (login or shell with empty list)
-  await Promise.all([loadCandidates(), loadUsers()]);
-  subscribeRealtime();
-  render();
-})();
+async function clearCloud(){
+  try{await sb.from('transformation_plan').delete().neq('id','00000000-0000-0000-0000-000000000000');toast('Plan cleared');await loadCloud()}
+  catch(e){toast('Clear failed: '+e.message)}
+}
+
+// Exports
+async function exportPNG(){
+  const node=document.getElementById('matrix');
+  const canvas=await html2canvas(node,{backgroundColor:'#ffffff',scale:2});
+  const a=document.createElement('a');a.download='transformation-plan.png';a.href=canvas.toDataURL('image/png');a.click();
+}
+async function exportPDF(){
+  const node=document.getElementById('matrix');
+  const canvas=await html2canvas(node,{backgroundColor:'#ffffff',scale:2});
+  const img=canvas.toDataURL('image/png');
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:'landscape',unit:'pt',format:'a3'});
+  const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();
+  const r=Math.min((pw-40)/canvas.width,(ph-80)/canvas.height);
+  const w=canvas.width*r,h=canvas.height*r;
+  pdf.setFont('helvetica','bold');pdf.setFontSize(16);pdf.text('e& Enterprise · IoT & NOC 30-60-90 Transformation Plan',20,30);
+  pdf.setFont('helvetica','normal');pdf.setFontSize(10);pdf.text(new Date().toLocaleString(),20,46);
+  pdf.addImage(img,'PNG',(pw-w)/2,60,w,h);
+  pdf.save('transformation-plan.pdf');
+}
+
+// Realtime
+sb.channel('tp').on('postgres_changes',{event:'*',schema:'public',table:'transformation_plan'},()=>loadCloud()).subscribe();
+
+loadCloud();
 </script>
 </body>
 </html>
