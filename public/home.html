@@ -484,6 +484,69 @@ async function exportPDF(){
 sb.channel('tp').on('postgres_changes',{event:'*',schema:'public',table:'transformation_plan'},()=>loadCloud()).subscribe();
 
 loadCloud();
+
+async function loadTalent(){
+  try{
+    const {data,error}=await sb.from('candidates').select('company,attendance,final_status,interview_date,designation');
+    if(error) throw error;
+    const rows=data||[];
+    const isSel=v=>/^selected$/i.test(String(v||'').trim());
+    const isWait=v=>/wait/i.test(String(v||''));
+    const hasAtt=v=>String(v||'').trim()!=='';
+    const total=rows.length;
+    const assessed=rows.filter(r=>hasAtt(r.attendance)).length;
+    const selected=rows.filter(r=>isSel(r.final_status)).length;
+    const wait=rows.filter(r=>isWait(r.final_status)).length;
+    const dates=[...new Set(rows.map(r=>r.interview_date).filter(Boolean))].sort();
+    const dateRange=dates.length?(dates[0]+(dates.length>1?' → '+dates[dates.length-1]:'')):'May 2026';
+    document.getElementById('sN').textContent=total;
+    document.getElementById('sSel').textContent=selected;
+    document.getElementById('sDates').textContent=dateRange;
+    document.getElementById('tTotal').textContent=total;
+    document.getElementById('tAssessed').textContent=assessed;
+    document.getElementById('tAssessedRate').textContent=Math.round(assessed/total*100)+'% of applicants interviewed';
+    document.getElementById('tSelected').textContent=selected;
+    document.getElementById('tSelectedRate').textContent=Math.round(selected/Math.max(assessed,1)*100)+'% of assessed cleared';
+    document.getElementById('tWait').textContent=wait;
+
+    const vendors=['Maxthon','Shams'].map(v=>{
+      const vr=rows.filter(r=>String(r.company||'').toLowerCase()===v.toLowerCase());
+      const va=vr.filter(r=>hasAtt(r.attendance)).length;
+      const vs=vr.filter(r=>isSel(r.final_status)).length;
+      const vw=vr.filter(r=>isWait(r.final_status)).length;
+      const vn=vr.filter(r=>/not\s*selected|reject/i.test(r.final_status||'')).length;
+      const drv=vr.filter(r=>/yes/i.test(r.designation||'')||/driver/i.test(r.designation||'')).length;
+      const rate=va?Math.round(vs/va*100):0;
+      const color=v==='Maxthon'?'#1f4e79':'#7c3a1c';
+      const accent=v==='Maxthon'?'#3b82f6':'#c9a84c';
+      return {v,total:vr.length,va,vs,vw,vn,rate,color,accent};
+    });
+    document.getElementById('vendorCards').innerHTML=vendors.map(d=>`
+      <div style="background:#fff;border:1px solid #ececef;border-radius:6px;padding:28px 30px;position:relative;overflow:hidden">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:${d.color}"></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:6px">
+          <div>
+            <div style="font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#9aa0a6;font-weight:700">Vendor</div>
+            <h3 style="font-size:26px;font-weight:600;letter-spacing:-.02em;margin:6px 0 0;color:#0a0a0f">${d.v}</h3>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:'Inter';font-size:44px;font-weight:500;line-height:1;color:${d.color};font-variant-numeric:tabular-nums;letter-spacing:-.03em">${d.rate}%</div>
+            <div style="font-size:11px;color:#7a7e87;margin-top:4px;letter-spacing:.04em">Selection rate</div>
+          </div>
+        </div>
+        <div style="font-size:13.5px;color:#5a5e66;line-height:1.6;margin:14px 0 20px;padding:14px 0;border-top:1px solid #f1f1f4;border-bottom:1px solid #f1f1f4">
+          <b style="color:#0a0a0f">${d.va}</b> of <b style="color:#0a0a0f">${d.total}</b> candidates assessed on-site. <b style="color:#0d7a5f">${d.vs} selected</b> for immediate deployment, <b style="color:#b8860b">${d.vw} retained</b> on the waiting list${d.vn?`, <b style="color:#b42318">${d.vn} declined</b>`:''}.
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+          <div><div style="font-family:'Inter';font-size:22px;font-weight:500;color:#0a0a0f;font-variant-numeric:tabular-nums">${d.total}</div><div style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#9aa0a6;margin-top:3px">Pool</div></div>
+          <div><div style="font-family:'Inter';font-size:22px;font-weight:500;color:#1f4e79;font-variant-numeric:tabular-nums">${d.va}</div><div style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#9aa0a6;margin-top:3px">Assessed</div></div>
+          <div><div style="font-family:'Inter';font-size:22px;font-weight:500;color:#0d7a5f;font-variant-numeric:tabular-nums">${d.vs}</div><div style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#9aa0a6;margin-top:3px">Selected</div></div>
+          <div><div style="font-family:'Inter';font-size:22px;font-weight:500;color:#b8860b;font-variant-numeric:tabular-nums">${d.vw}</div><div style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#9aa0a6;margin-top:3px">Waitlist</div></div>
+        </div>
+      </div>`).join('');
+  }catch(e){console.error('talent',e)}
+}
+loadTalent();
 </script>
 </body>
 </html>
