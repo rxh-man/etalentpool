@@ -369,7 +369,17 @@ async function cycleBadge(id,field){
 // Filters
 document.querySelectorAll('.chip[data-row]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-row]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.row=b.dataset.row;render()});
 document.querySelectorAll('.chip[data-col]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-col]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.col=b.dataset.col;render()});
-document.querySelectorAll('.chip[data-status]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-status]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.status=b.dataset.status;render()});
+document.querySelectorAll('.chip[data-status]').forEach(b=>b.onclick=()=>{
+  const val=b.dataset.status;
+  if(val==='all'){FILT.status=new Set(['all']);}
+  else{
+    if(FILT.status.has('all'))FILT.status=new Set();
+    if(FILT.status.has(val))FILT.status.delete(val);else FILT.status.add(val);
+    if(FILT.status.size===0)FILT.status=new Set(['all']);
+  }
+  document.querySelectorAll('.chip[data-status]').forEach(x=>x.classList.toggle('on', FILT.status.has(x.dataset.status)));
+  render();
+});
 document.querySelectorAll('.chip[data-sev]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-sev]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.sev=b.dataset.sev;render()});
 document.getElementById('ownToggle').onchange=render;
 
