@@ -164,7 +164,7 @@
 <header class="top">
   <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%">
     <div class="brand">
-      <div class="mark">e&amp;</div>
+      <div class="mark"><img src="./eand-logo.png" alt="e&amp; logo" /></div>
       <div class="t"><b>e&amp; Enterprise</b><small>Governance · IoT &amp; NOC</small></div>
     </div>
     <nav class="nav">
@@ -176,7 +176,7 @@
 
 <main>
 <section class="hero wrap">
-  <div class="eyebrow">CBO Office · Executive Briefing</div>
+  <div class="eyebrow">Summarised Plan</div>
   <h1 class="hero-title">IoT &amp; NOC <span class="accent">30·60·90</span> Day<br/>Transformation Plan</h1>
   <p class="sub"><b>People · Process · Systems.</b> A structured, time-boxed program to close operational gaps, automate KPIs, and elevate NOC service maturity across the e&amp; ecosystem.</p>
 
@@ -219,6 +219,18 @@
       <button class="chip" data-col="30">30</button>
       <button class="chip" data-col="60">60</button>
       <button class="chip" data-col="90">90</button>
+      <span style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 4px 0 10px">Status:</span>
+      <button class="chip on" data-status="all">All</button>
+      <button class="chip" data-status="pending">Pending</button>
+      <button class="chip" data-status="inprogress">In Progress</button>
+      <button class="chip" data-status="escalated">Escalated</button>
+      <button class="chip" data-status="completed">Completed</button>
+      <span style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 4px 0 10px">Severity:</span>
+      <button class="chip on" data-sev="all">All</button>
+      <button class="chip" data-sev="low">Low</button>
+      <button class="chip" data-sev="medium">Medium</button>
+      <button class="chip" data-sev="high">High</button>
+      <button class="chip" data-sev="critical">Critical</button>
       <label class="toggle"><input type="checkbox" id="ownToggle" checked />Show owners</label>
       <div class="actions" style="margin-left:8px">
         <button class="btn-x" onclick="exportPNG()">Export PNG</button>
