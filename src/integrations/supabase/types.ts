@@ -54,6 +54,7 @@ export type Database = {
           designation: string | null
           driving_licence: string | null
           emp_id: string | null
+          final_status: string | null
           id: string
           interview_date: string | null
           recommended_for: string | null
@@ -70,6 +71,7 @@ export type Database = {
           designation?: string | null
           driving_licence?: string | null
           emp_id?: string | null
+          final_status?: string | null
           id?: string
           interview_date?: string | null
           recommended_for?: string | null
@@ -86,6 +88,7 @@ export type Database = {
           designation?: string | null
           driving_licence?: string | null
           emp_id?: string | null
+          final_status?: string | null
           id?: string
           interview_date?: string | null
           recommended_for?: string | null
