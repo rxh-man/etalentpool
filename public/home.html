@@ -330,7 +330,7 @@ function render(){
     html+=`<div class="rh ${rk.toLowerCase()}">${rk}</div>`;
     colsShow.forEach(c=>{
       const items=DATA.filter(r=>r.category===rk && r.phase===c.k
-        && (FILT.status==='all'||r.status===FILT.status)
+        && (FILT.status.has('all')||FILT.status.has(r.status))
         && (FILT.sev==='all'||r.severity===FILT.sev));
       const phaseTag=c.k+'D';
       if(items.length===0){
