@@ -13,7 +13,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   useEffect(() => {
-    window.location.replace("/talent-pool.html");
+    window.location.replace("/home.html");
   }, []);
   return null;
 }
