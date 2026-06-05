@@ -309,9 +309,9 @@ function computeKPIs(){
   document.getElementById('kProjectsList').textContent=names.length?names.join(' · '):'No projects listed';
   document.getElementById('kActions').textContent=DATA.length||'0';
   const c={'30':0,'60':0,'90':0};DATA.forEach(r=>{if(c[r.phase]!=null)c[r.phase]++});
-  document.getElementById('pN30').textContent=c['30'];
-  document.getElementById('pN60').textContent=c['60'];
-  document.getElementById('pN90').textContent=c['90'];
+  var p30=document.getElementById('pN30'); if(p30)p30.textContent=c['30'];
+  var p60=document.getElementById('pN60'); if(p60)p60.textContent=c['60'];
+  var p90=document.getElementById('pN90'); if(p90)p90.textContent=c['90'];
 }
 
 const ROWS=['People','Process','Systems'];
