@@ -95,6 +95,39 @@ export type Database = {
         }
         Relationships: []
       }
+      transformation_plan: {
+        Row: {
+          action: string
+          category: string
+          created_at: string
+          id: string
+          owner: string | null
+          phase: string
+          project: string | null
+          suggested_solution: string | null
+        }
+        Insert: {
+          action: string
+          category: string
+          created_at?: string
+          id?: string
+          owner?: string | null
+          phase: string
+          project?: string | null
+          suggested_solution?: string | null
+        }
+        Update: {
+          action?: string
+          category?: string
+          created_at?: string
+          id?: string
+          owner?: string | null
+          phase?: string
+          project?: string | null
+          suggested_solution?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
