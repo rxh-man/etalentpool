@@ -280,7 +280,7 @@ const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 document.getElementById('yr').textContent=new Date().getFullYear();
 
 let DATA=[]; // {id,category,phase,action,owner,project,status,severity}
-let FILT={row:'all',col:'all',status:'all',sev:'all'};
+let FILT={row:'all',col:'all',status:new Set(['all']),sev:'all'};
 const STATUSES=['pending','inprogress','escalated','completed'];
 const SEVERITIES=['low','medium','high','critical'];
 const STATUS_LABEL={pending:'Pending',inprogress:'In Progress',escalated:'Escalated',completed:'Completed'};
