@@ -8,7 +8,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%238B0000'/%3E%3Ctext x='50%25' y='58%25' font-family='Sora,Arial' font-size='34' font-weight='800' text-anchor='middle' fill='white'%3Ee%26amp;%3C/text%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -21,59 +21,66 @@
     --grid:rgba(15,15,20,.04);
   }
   *{box-sizing:border-box}
-  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:"ss01","cv11","tnum"}
   body{
     background-image:
       linear-gradient(var(--grid) 1px,transparent 1px),
       linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-    background-size:48px 48px,48px 48px;
+    background-size:56px 56px,56px 56px;
     background-position:-1px -1px,-1px -1px;
   }
   a{color:inherit}
-  h1,h2,h3,h4{font-family:'Sora',sans-serif;letter-spacing:-.01em;margin:0}
+  h1,h2,h3,h4{font-family:'Inter',sans-serif;letter-spacing:-.025em;margin:0}
   .wrap{max-width:1320px;margin:0 auto;padding:0 28px}
   /* TOP BAR */
   .top{display:flex;align-items:center;justify-content:space-between;padding:18px 0;border-bottom:1px solid var(--line);background:rgba(255,255,255,.85);backdrop-filter:saturate(140%) blur(6px);position:sticky;top:0;z-index:50}
   .brand{display:flex;align-items:center;gap:14px}
-  .brand .mark{width:54px;height:54px;border-radius:10px;background:#fff;display:grid;place-items:center;padding:4px;border:1px solid var(--line)}
+  .brand .mark{width:48px;height:48px;border-radius:8px;background:#fff;display:grid;place-items:center;padding:4px;border:1px solid var(--line)}
   .brand .mark img{width:100%;height:100%;object-fit:contain}
   .brand .t{line-height:1.1}
-  .brand .t b{font-family:'Sora';font-weight:800;font-size:18px;letter-spacing:.2px}
-  .brand .t small{display:block;color:var(--muted);font-size:12px;margin-top:2px;letter-spacing:.16em;text-transform:uppercase}
+  .brand .t b{font-family:'Inter';font-weight:700;font-size:15px;letter-spacing:-.01em;color:#0d0d12}
+  .brand .t small{display:block;color:#9aa0a6;font-size:10px;margin-top:4px;letter-spacing:.22em;text-transform:uppercase;font-weight:500}
   .nav{display:flex;align-items:center;gap:10px}
-  .nav a.btn{padding:10px 16px;border:1px solid var(--line);background:#fff;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;color:var(--ink);transition:all .15s}
-  .nav a.btn:hover{border-color:var(--maroon);color:var(--maroon)}
-  .nav a.btn.primary{background:var(--maroon);color:#fff;border-color:var(--maroon)}
-  .nav a.btn.primary:hover{background:var(--maroon-2)}
+  .nav a.btn{padding:9px 16px;border:1px solid var(--line);background:#fff;border-radius:6px;font-weight:500;font-size:13px;text-decoration:none;color:#4b5563;transition:all .15s;letter-spacing:-.005em}
+  .nav a.btn:hover{border-color:#cfcfd4;color:var(--ink);background:#fafafa}
+  .nav a.btn.primary{background:var(--maroon);color:#fff;border-color:var(--maroon);font-weight:600;box-shadow:0 8px 24px -10px rgba(139,0,0,.45)}
+  .nav a.btn.primary:hover{background:var(--maroon-2);transform:translateY(-1px)}
 
   /* HERO */
-  .hero{padding:54px 0 28px}
-  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--maroon);font-weight:700}
-  .eyebrow::before{content:"";width:28px;height:2px;background:var(--maroon)}
-  h1.hero-title{font-size:54px;line-height:1.05;margin:14px 0 12px;font-weight:800}
-  h1.hero-title .accent{color:var(--maroon)}
-  .sub{color:#3a3a44;font-size:18px;max-width:760px}
-  .sub b{color:var(--maroon);font-weight:600}
+  .hero{padding:72px 0 36px;max-width:1100px}
+  .eyebrow{display:inline-flex;align-items:center;gap:12px;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--maroon);font-weight:700}
+  .eyebrow::before{content:"";width:32px;height:2px;background:var(--maroon)}
+  h1.hero-title{font-size:68px;line-height:1.02;margin:22px 0 22px;font-weight:600;letter-spacing:-.035em;max-width:980px;color:#0a0a0f}
+  h1.hero-title .accent{font-family:'Fraunces',serif;font-weight:500;font-style:italic;color:var(--maroon);letter-spacing:-.02em}
+  .sub{color:#5b6068;font-size:18px;max-width:720px;line-height:1.6;font-weight:300}
+  .sub b{color:#0a0a0f;font-weight:500}
 
   /* KPI CARDS */
-  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
-  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 22px 20px;position:relative;overflow:hidden;transition:transform .2s, box-shadow .2s}
-  .kpi:hover{transform:translateY(-2px);box-shadow:0 18px 40px -24px rgba(0,0,0,.18)}
-  .kpi .lbl{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:700}
-  .kpi .num{font-family:'Sora';font-weight:800;font-size:64px;line-height:1;margin:10px 0 6px;color:var(--ink)}
-  .kpi .note{font-size:13px;color:var(--muted)}
-  .kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--maroon)}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:56px}
+  .kpi{background:#fff;border:1px solid #ececef;border-radius:4px;padding:26px 28px;position:relative;overflow:hidden;transition:border-color .2s, box-shadow .2s;display:flex;flex-direction:column;justify-content:space-between;min-height:172px}
+  .kpi:hover{border-color:#d6d6dc;box-shadow:0 1px 0 #f1f1f4, 0 12px 28px -18px rgba(15,15,20,.18)}
+  .kpi .lbl{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#9aa0a6;font-weight:600}
+  .kpi .num{font-family:'Inter';font-weight:500;font-size:56px;line-height:1;margin:14px 0 8px;color:#0a0a0f;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+  .kpi .note{font-size:12.5px;color:#7a7e87;line-height:1.5;font-weight:400}
+  .kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--maroon)}
   .kpi.b::after{background:var(--blue)} .kpi.g::after{background:var(--green)} .kpi.y::after{background:var(--gold)}
+  .kpi:hover .num{color:var(--maroon)}
+  .kpi.b:hover .num{color:var(--blue)} .kpi.g:hover .num{color:var(--green)}
 
   /* PHASE BANNERS */
-  .phases{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:22px}
-  .pb{position:relative;border-radius:14px;padding:22px;border:1px solid var(--line);background:#fff;overflow:hidden;display:flex;justify-content:space-between;align-items:flex-end;min-height:130px}
-  .pb .lbl{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:700}
-  .pb .ttl{font-family:'Sora';font-weight:700;font-size:22px;margin-top:8px}
-  .pb .ttl small{display:block;color:var(--muted);font-weight:500;font-size:13px;letter-spacing:.06em;margin-top:4px}
-  .pb .num{font-family:'Sora';font-weight:800;font-size:54px;line-height:1;color:rgba(0,0,0,.08)}
-  .pb.bl{border-top:4px solid var(--blue)} .pb.gd{border-top:4px solid var(--gold)} .pb.gr{border-top:4px solid var(--green)}
-  .pb.bl .ttl::first-letter,.pb.gd .ttl::first-letter,.pb.gr .ttl::first-letter{font-weight:800}
+  .phases{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:20px}
+  .pb{position:relative;border-radius:4px;padding:22px 24px 24px;border:1px solid #ececef;background:#fafafa;overflow:hidden;display:flex;flex-direction:column;gap:14px;min-height:136px;transition:background .2s, border-color .2s}
+  .pb:hover{background:#f5f5f7;border-color:#dedee3}
+  .pb .head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .pb .lbl{font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#9aa0a6;font-weight:600}
+  .pb .rail{display:flex;gap:4px}
+  .pb .rail i{display:block;height:3px;width:18px;background:#e3e3e8;border-radius:2px}
+  .pb .ttl{font-family:'Inter';font-weight:600;font-size:19px;letter-spacing:-.015em;color:#0a0a0f;line-height:1.25}
+  .pb .ttl small{display:block;color:#7a7e87;font-weight:400;font-size:12.5px;letter-spacing:.02em;margin-top:6px}
+  .pb .num{display:none}
+  .pb.bl{border-top:2px solid var(--blue)} .pb.bl .rail i:nth-child(1){background:var(--blue)}
+  .pb.gd{border-top:2px solid var(--gold)} .pb.gd .rail i:nth-child(2){background:var(--gold)}
+  .pb.gr{border-top:2px solid var(--green)} .pb.gr .rail i:nth-child(3){background:var(--green)}
 
   /* SECTION TITLE */
   .section{padding:48px 0 28px}
@@ -188,16 +195,16 @@
 
   <div class="phases">
     <div class="pb bl">
-      <div><div class="lbl">Phase 1</div><div class="ttl">Day 1–30 · Foundation<small>Stabilise · Restructure · Govern</small></div></div>
-      <div class="num" id="pN30">—</div>
+      <div class="head"><span class="lbl">Phase 1</span><span class="rail"><i></i><i></i><i></i></span></div>
+      <div class="ttl">Day 1–30 · Foundation<small>Stabilise · Restructure · Govern</small></div>
     </div>
     <div class="pb gd">
-      <div><div class="lbl">Phase 2</div><div class="ttl">Day 31–60 · Enablement<small>Automate · Align · Resource</small></div></div>
-      <div class="num" id="pN60">—</div>
+      <div class="head"><span class="lbl">Phase 2</span><span class="rail"><i></i><i></i><i></i></span></div>
+      <div class="ttl">Day 31–60 · Enablement<small>Automate · Align · Resource</small></div>
     </div>
     <div class="pb gr">
-      <div><div class="lbl">Phase 3</div><div class="ttl">Day 61–90 · Excellence+<small>Scale · Optimise · Secure</small></div></div>
-      <div class="num" id="pN90">—</div>
+      <div class="head"><span class="lbl">Phase 3</span><span class="rail"><i></i><i></i><i></i></span></div>
+      <div class="ttl">Day 61–90 · Excellence+<small>Scale · Optimise · Secure</small></div>
     </div>
   </div>
 </section>
@@ -302,9 +309,9 @@ function computeKPIs(){
   document.getElementById('kProjectsList').textContent=names.length?names.join(' · '):'No projects listed';
   document.getElementById('kActions').textContent=DATA.length||'0';
   const c={'30':0,'60':0,'90':0};DATA.forEach(r=>{if(c[r.phase]!=null)c[r.phase]++});
-  document.getElementById('pN30').textContent=c['30'];
-  document.getElementById('pN60').textContent=c['60'];
-  document.getElementById('pN90').textContent=c['90'];
+  var p30=document.getElementById('pN30'); if(p30)p30.textContent=c['30'];
+  var p60=document.getElementById('pN60'); if(p60)p60.textContent=c['60'];
+  var p90=document.getElementById('pN90'); if(p90)p90.textContent=c['90'];
 }
 
 const ROWS=['People','Process','Systems'];
