@@ -181,7 +181,7 @@
   <p class="sub"><b>People · Process · Systems.</b> A structured, time-boxed program to close operational gaps, automate KPIs, and elevate NOC service maturity across the e&amp; ecosystem.</p>
 
   <div class="kpis">
-    <div class="kpi"><div class="lbl">Active Projects</div><div class="num" id="kProjects">—</div><div class="note">Distinct project initiatives tracked</div></div>
+    <div class="kpi"><div class="lbl">Active Projects</div><div class="num" id="kProjects">—</div><div class="note" id="kProjectsList">—</div></div>
     <div class="kpi b"><div class="lbl">Action Points</div><div class="num" id="kActions">—</div><div class="note">Identified gaps &amp; suggested solutions</div></div>
     <div class="kpi g"><div class="lbl">Phases</div><div class="num">3</div><div class="note">Foundation · Enablement · Excellence+</div></div>
   </div>
@@ -296,8 +296,10 @@ async function loadCloud(){
 }
 
 function computeKPIs(){
-  const projects=new Set();DATA.forEach(r=>{if(r.project && r.project.trim())projects.add(r.project.trim().toLowerCase())});
-  document.getElementById('kProjects').textContent=projects.size||'0';
+  const map=new Map();DATA.forEach(r=>{const p=(r.project||'').trim();if(p){const k=p.toLowerCase();if(!map.has(k))map.set(k,p)}});
+  const names=[...map.values()];
+  document.getElementById('kProjects').textContent=names.length||'0';
+  document.getElementById('kProjectsList').textContent=names.length?names.join(' · '):'No projects listed';
   document.getElementById('kActions').textContent=DATA.length||'0';
   const c={'30':0,'60':0,'90':0};DATA.forEach(r=>{if(c[r.phase]!=null)c[r.phase]++});
   document.getElementById('pN30').textContent=c['30'];
