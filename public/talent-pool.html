@@ -518,11 +518,11 @@ function applyFilters(list){
   const q=f.q.toLowerCase().trim();
   return list.filter(c=>{
     if(f.company && c.company!==f.company) return false;
-    if(f.status && c.status!==f.status) return false;
+    if(f.status && c.finalStatus!==f.status) return false;
     if(f.designation && c.designation!==f.designation) return false;
     if(f.attendance && c.attendance!==f.attendance) return false;
     if(q){
-      const hay=[c.name,c.empId,c.company,c.designation,c.recommendedFor,c.remarks,c.attendance].map(x=>String(x||'').toLowerCase()).join(' ');
+      const hay=[c.name,c.empId,c.company,c.designation,c.recommendedFor,c.finalStatus,c.remarks,c.attendance].map(x=>String(x||'').toLowerCase()).join(' ');
       if(!hay.includes(q)) return false;
     }
     return true;
