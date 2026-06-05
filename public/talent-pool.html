@@ -298,6 +298,7 @@ function rowFromDb(r){
     designation: r.designation||'',
     recommendedFor: r.recommended_for||'',
     remarks: r.remarks||'',
+    finalStatus: r.final_status||'',
     score: parseScore(r.technical_knowledge),
     status: normStatus(r.recommended_for),
     createdAt: r.created_at,
@@ -317,6 +318,7 @@ function rowToDb(c){
     designation: c.designation||null,
     recommended_for: c.recommendedFor||null,
     remarks: c.remarks||null,
+    final_status: c.finalStatus||null,
   };
 }
 async function loadCandidates(){
@@ -516,11 +518,11 @@ function applyFilters(list){
   const q=f.q.toLowerCase().trim();
   return list.filter(c=>{
     if(f.company && c.company!==f.company) return false;
-    if(f.status && c.status!==f.status) return false;
+    if(f.status && c.finalStatus!==f.status) return false;
     if(f.designation && c.designation!==f.designation) return false;
     if(f.attendance && c.attendance!==f.attendance) return false;
     if(q){
-      const hay=[c.name,c.empId,c.company,c.designation,c.recommendedFor,c.remarks,c.attendance].map(x=>String(x||'').toLowerCase()).join(' ');
+      const hay=[c.name,c.empId,c.company,c.designation,c.recommendedFor,c.finalStatus,c.remarks,c.attendance].map(x=>String(x||'').toLowerCase()).join(' ');
       if(!hay.includes(q)) return false;
     }
     return true;
@@ -639,14 +641,14 @@ function renderPool(el){
       <input id="qSearch" placeholder="Search name, emp ID, company, designation, remarks…" value="${esc(state.filters.q)}"/>
     </div>
     <select class="select" id="fCompany"><option value="">All Companies</option>${companies.map(d=>`<option ${state.filters.company===d?'selected':''}>${esc(d)}</option>`).join('')}</select>
-    <select class="select" id="fStatus"><option value="">All Recommendations</option>${['Passed','Failed','On Hold'].map(s=>`<option ${state.filters.status===s?'selected':''}>${s}</option>`).join('')}</select>
+    <select class="select" id="fStatus"><option value="">All Final Status</option>${['Selected','Not Selected','Waiting List'].map(s=>`<option ${state.filters.status===s?'selected':''}>${s}</option>`).join('')}</select>
     <select class="select" id="fDes"><option value="">All Designations</option>${designations.map(p=>`<option ${state.filters.designation===p?'selected':''}>${esc(p)}</option>`).join('')}</select>
     <select class="select" id="fAtt"><option value="">All Attendance</option>${atts.map(n=>`<option ${state.filters.attendance===n?'selected':''}>${esc(n)}</option>`).join('')}</select>
   </div>
   <div class="table-wrap">
     <table class="data">
       <thead><tr>
-        ${[['_idx','SN'],['empId','Emp ID'],['name','Candidate Name'],['company','Company'],['interviewDate','Interview Date'],['attendance','Attendance'],['techKnowledge','Tech Knowledge'],['commSkill','Comm Skill'],['drivingLicence','Lic'],['designation','Designation'],['recommendedFor','Recommended For']]
+        ${[['_idx','SN'],['empId','Emp ID'],['name','Candidate Name'],['company','Company'],['interviewDate','Interview Date'],['attendance','Attendance'],['techKnowledge','Tech Knowledge'],['commSkill','Comm Skill'],['drivingLicence','Lic'],['designation','Designation'],['recommendedFor','Recommended For'],['finalStatus','Final Status']]
           .map(([k,l])=>`<th data-sort="${k}">${l}${state.sort.col===k?(state.sort.dir==='asc'?' ▲':' ▼'):''}</th>`).join('')}
       </tr></thead>
       <tbody>
@@ -663,7 +665,8 @@ function renderPool(el){
             <td>${esc(c.drivingLicence||'—')}</td>
             <td>${esc(c.designation||'—')}</td>
             <td><span class="badge ${c.status==='Passed'?'pass':c.status==='Failed'?'fail':'hold'}">${esc(c.recommendedFor||c.status)}</span></td>
-          </tr>`).join(''):`<tr><td colspan="11" style="padding:40px;text-align:center;color:var(--muted)">No candidates match the current filters.</td></tr>`}
+            <td><span class="badge ${/^selected$/i.test(c.finalStatus)?'pass':/not\s*selected|reject/i.test(c.finalStatus)?'fail':'hold'}">${esc(c.finalStatus||'—')}</span></td>
+          </tr>`).join(''):`<tr><td colspan="12" style="padding:40px;text-align:center;color:var(--muted)">No candidates match the current filters.</td></tr>`}
       </tbody>
     </table>
   </div>
@@ -727,6 +730,7 @@ function openCandidate(id){
         <dt>Driving Licence</dt><dd>${esc(c.drivingLicence||'—')}</dd>
         <dt>Designation</dt><dd>${esc(c.designation||'—')}</dd>
         <dt>Recommended For</dt><dd>${esc(c.recommendedFor||'—')}</dd>
+        <dt>Final Status</dt><dd>${esc(c.finalStatus||'—')}</dd>
         <dt>Remarks</dt><dd>${esc(c.remarks||'—')}</dd>
       </dl>
     </div>`;
@@ -748,6 +752,7 @@ const SYSTEM_FIELDS=[
   ['drivingLicence','DRIVING LICENCE'],
   ['designation','DESIGNATION'],
   ['recommendedFor','RECOMMENDED FOR'],
+  ['finalStatus','FINAL STATUS'],
   ['remarks','REMARKS'],
 ];
 const AUTO_MAP={
@@ -762,6 +767,7 @@ const AUTO_MAP={
   drivingLicence:['driving licence','driving license','licence','license','dl'],
   designation:['designation','position','role','job title','title'],
   recommendedFor:['recommended for','recommendation','recommended','status','outcome','result'],
+  finalStatus:['final status','final','selection status','selected','selection'],
   remarks:['remarks','comments','notes','remark'],
 };
 function autoMatch(header){
@@ -1020,6 +1026,7 @@ function exportXlsx(rows){
     'DRIVING LICENCE':c.drivingLicence||'',
     'DESIGNATION':c.designation||'',
     'RECOMMENDED FOR':c.recommendedFor||'',
+    'FINAL STATUS':c.finalStatus||'',
     'REMARKS':c.remarks||'',
   }));
   const ws=XLSX.utils.json_to_sheet(data);
@@ -1044,8 +1051,8 @@ function exportPdf(rows){
   doc.text(`Exported: ${new Date().toLocaleString()}    Records: ${rows.length}    Filters: ${filterTxt}`,32,78);
   doc.autoTable({
     startY:92,
-    head:[['SN','EMP ID','Candidate Name','Company','Interview Date','Attendance','Tech','Comm','Lic','Designation','Recommended For','Remarks']],
-    body:rows.map((c,i)=>[c.sn||(i+1),c.empId||'',c.name||'',c.company||'',c.interviewDate||'',c.attendance||'',c.techKnowledge||'',c.commSkill||'',c.drivingLicence||'',c.designation||'',c.recommendedFor||'',c.remarks||'']),
+    head:[['SN','EMP ID','Candidate Name','Company','Interview Date','Attendance','Tech','Comm','Lic','Designation','Recommended For','Final Status','Remarks']],
+    body:rows.map((c,i)=>[c.sn||(i+1),c.empId||'',c.name||'',c.company||'',c.interviewDate||'',c.attendance||'',c.techKnowledge||'',c.commSkill||'',c.drivingLicence||'',c.designation||'',c.recommendedFor||'',c.finalStatus||'',c.remarks||'']),
     styles:{font:'helvetica',fontSize:7.5,cellPadding:4,textColor:30,lineColor:[220,210,212],lineWidth:.4},
     headStyles:{fillColor:[77,0,16],textColor:[230,198,106],fontStyle:'bold',fontSize:8},
     alternateRowStyles:{fillColor:[250,244,245]},
