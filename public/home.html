@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>e& Enterprise — IoT & NOC 30·60·90 Transformation Plan</title>
+<meta name="description" content="Executive 30-60-90 day transformation plan for IoT & NOC at e& Enterprise." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%238B0000'/%3E%3Ctext x='50%25' y='58%25' font-family='Sora,Arial' font-size='34' font-weight='800' text-anchor='middle' fill='white'%3Ee%26amp;%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#ffffff; --ink:#0d0d12; --muted:#6b7280; --line:#e6e6ea;
+    --maroon:#8B0000; --maroon-2:#6a0000; --gold:#C9A84C;
+    --blue:#1f4fd0; --green:#138a51; --card:#0f0f14; --card-soft:#16161d;
+    --grid:rgba(15,15,20,.04);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  body{
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:48px 48px,48px 48px;
+    background-position:-1px -1px,-1px -1px;
+  }
+  a{color:inherit}
+  h1,h2,h3,h4{font-family:'Sora',sans-serif;letter-spacing:-.01em;margin:0}
+  .wrap{max-width:1320px;margin:0 auto;padding:0 28px}
+  /* TOP BAR */
+  .top{display:flex;align-items:center;justify-content:space-between;padding:18px 0;border-bottom:1px solid var(--line);background:rgba(255,255,255,.85);backdrop-filter:saturate(140%) blur(6px);position:sticky;top:0;z-index:50}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand .mark{width:54px;height:54px;border-radius:10px;background:#fff;display:grid;place-items:center;padding:4px;border:1px solid var(--line)}
+  .brand .mark img{width:100%;height:100%;object-fit:contain}
+  .brand .t{line-height:1.1}
+  .brand .t b{font-family:'Sora';font-weight:800;font-size:18px;letter-spacing:.2px}
+  .brand .t small{display:block;color:var(--muted);font-size:12px;margin-top:2px;letter-spacing:.16em;text-transform:uppercase}
+  .nav{display:flex;align-items:center;gap:10px}
+  .nav a.btn{padding:10px 16px;border:1px solid var(--line);background:#fff;border-radius:8px;font-weight:600;font-size:13px;text-decoration:none;color:var(--ink);transition:all .15s}
+  .nav a.btn:hover{border-color:var(--maroon);color:var(--maroon)}
+  .nav a.btn.primary{background:var(--maroon);color:#fff;border-color:var(--maroon)}
+  .nav a.btn.primary:hover{background:var(--maroon-2)}
+
+  /* HERO */
+  .hero{padding:54px 0 28px}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--maroon);font-weight:700}
+  .eyebrow::before{content:"";width:28px;height:2px;background:var(--maroon)}
+  h1.hero-title{font-size:54px;line-height:1.05;margin:14px 0 12px;font-weight:800}
+  h1.hero-title .accent{color:var(--maroon)}
+  .sub{color:#3a3a44;font-size:18px;max-width:760px}
+  .sub b{color:var(--maroon);font-weight:600}
+
+  /* KPI CARDS */
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 22px 20px;position:relative;overflow:hidden;transition:transform .2s, box-shadow .2s}
+  .kpi:hover{transform:translateY(-2px);box-shadow:0 18px 40px -24px rgba(0,0,0,.18)}
+  .kpi .lbl{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .kpi .num{font-family:'Sora';font-weight:800;font-size:64px;line-height:1;margin:10px 0 6px;color:var(--ink)}
+  .kpi .note{font-size:13px;color:var(--muted)}
+  .kpi::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--maroon)}
+  .kpi.b::after{background:var(--blue)} .kpi.g::after{background:var(--green)} .kpi.y::after{background:var(--gold)}
+
+  /* PHASE BANNERS */
+  .phases{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:22px}
+  .pb{position:relative;border-radius:14px;padding:22px;border:1px solid var(--line);background:#fff;overflow:hidden;display:flex;justify-content:space-between;align-items:flex-end;min-height:130px}
+  .pb .lbl{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .pb .ttl{font-family:'Sora';font-weight:700;font-size:22px;margin-top:8px}
+  .pb .ttl small{display:block;color:var(--muted);font-weight:500;font-size:13px;letter-spacing:.06em;margin-top:4px}
+  .pb .num{font-family:'Sora';font-weight:800;font-size:54px;line-height:1;color:rgba(0,0,0,.08)}
+  .pb.bl{border-top:4px solid var(--blue)} .pb.gd{border-top:4px solid var(--gold)} .pb.gr{border-top:4px solid var(--green)}
+  .pb.bl .ttl::first-letter,.pb.gd .ttl::first-letter,.pb.gr .ttl::first-letter{font-weight:800}
+
+  /* SECTION TITLE */
+  .section{padding:48px 0 28px}
+  .sec-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:24px;flex-wrap:wrap}
+  .sec-head h2{font-size:34px;font-weight:800}
+  .sec-head .desc{color:var(--muted);max-width:580px;margin-top:6px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .chip{padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:12px;font-weight:600;cursor:pointer;color:#444;transition:all .15s}
+  .chip:hover{border-color:var(--maroon);color:var(--maroon)}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-left:8px}
+  .toggle input{accent-color:var(--maroon)}
+
+  /* MATRIX */
+  .matrix{display:grid;grid-template-columns:130px 1fr 1fr 1fr;gap:12px;margin-top:8px}
+  .mh{font-family:'Sora';font-weight:700;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--ink);padding:12px 14px;border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center}
+  .mh.empty{background:transparent}
+  .mh.bl{background:var(--blue)} .mh.gd{background:#9c8233;color:#fff} .mh.gr{background:var(--green)}
+  .mh small{display:block;font-size:10px;font-weight:500;letter-spacing:.18em;opacity:.85;margin-top:3px}
+  .rh{font-family:'Sora';font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:#fff;border-radius:10px;padding:14px 12px;display:flex;align-items:center;justify-content:center;text-align:center;background:#1a1a22;position:relative}
+  .rh.people{background:#2b231a;border-left:4px solid var(--gold)}
+  .rh.process{background:#1a2236;border-left:4px solid var(--blue)}
+  .rh.systems{background:#1a2a22;border-left:4px solid var(--green)}
+  .cell{background:var(--card);color:#e7e7ee;border-radius:12px;padding:14px 16px 12px;position:relative;border:1px solid #20202a;min-height:120px;display:flex;flex-direction:column;gap:8px}
+  .cell.people{border-left:4px solid var(--gold)}
+  .cell.process{border-left:4px solid var(--blue)}
+  .cell.systems{border-left:4px solid var(--green)}
+  .cell .ptag{position:absolute;top:10px;right:10px;font-size:9px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;color:#0d0d12;background:#e7e7ee;padding:3px 7px;border-radius:6px}
+  .cell ul{margin:0;padding:0 0 0 14px;list-style:none}
+  .cell li{font-size:12.5px;line-height:1.45;color:#d6d6df;padding:5px 0;border-bottom:1px dashed #2a2a35;position:relative;padding-left:14px}
+  .cell li:last-child{border-bottom:0}
+  .cell li::before{content:"";position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:2px;background:currentColor;opacity:.6}
+  .cell.people li::before{background:var(--gold)}
+  .cell.process li::before{background:var(--blue)}
+  .cell.systems li::before{background:var(--green)}
+  .cell .own{display:block;font-size:10px;color:#8c8c9c;margin-top:3px;letter-spacing:.04em}
+  .cell .meta{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap}
+  .badge{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 6px;border-radius:4px;cursor:pointer;border:1px solid transparent;user-select:none}
+  .badge:hover{filter:brightness(1.15)}
+  .st-pending{background:#3a3a44;color:#d9d9e0}
+  .st-inprogress{background:#1f3a6e;color:#cfe0ff}
+  .st-escalated{background:#6b1f1f;color:#ffd4d4}
+  .st-completed{background:#1a4d2e;color:#cdebd6}
+  .sv-low{background:#2d3a4a;color:#a8c2dc}
+  .sv-medium{background:#5a4a1c;color:#f0d78c}
+  .sv-high{background:#6b3a17;color:#ffc89a}
+  .sv-critical{background:#7a1a1a;color:#ffb0b0}
+  .cell .emp{color:#5e5e6a;font-size:12px;text-align:center;margin:auto;font-style:italic}
+  .actions{display:flex;gap:8px}
+  .btn-x{padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:#fff;font-weight:600;font-size:12px;cursor:pointer;color:var(--ink);transition:all .15s;font-family:inherit}
+  .btn-x:hover{border-color:var(--maroon);color:var(--maroon)}
+  .btn-x.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .btn-x.dark:hover{background:#000;color:#fff}
+
+  /* UPLOAD (hidden, small) */
+  .upload-zone{margin:80px 0 30px;padding-top:24px;border-top:1px dashed var(--line)}
+  .up-toggle{font-size:11px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:6px;letter-spacing:.18em;text-transform:uppercase;font-weight:600}
+  .up-toggle:hover{color:var(--maroon)}
+  .up-panel{display:none;margin-top:16px;padding:18px;border:1px dashed #c8c8d0;border-radius:12px;background:#fafafa}
+  .up-panel.open{display:block}
+  .drop{border:2px dashed #c5c5d0;border-radius:12px;padding:28px;text-align:center;background:#fff;cursor:pointer;transition:all .15s}
+  .drop:hover,.drop.drag{border-color:var(--maroon);background:#fff5f5}
+  .drop b{display:block;font-size:14px;color:var(--ink);margin-bottom:4px}
+  .drop small{color:var(--muted);font-size:12px}
+  .up-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center}
+
+  /* FOOTER */
+  footer{padding:32px 0 40px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);margin-top:30px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  @media (max-width:1000px){
+    h1.hero-title{font-size:38px}
+    .kpis,.phases{grid-template-columns:1fr 1fr}
+    .matrix{grid-template-columns:1fr;gap:8px}
+    .mh.empty,.mh{display:none}
+    .rh{justify-content:flex-start;padding:10px 14px}
+  }
+  @media (max-width:640px){
+    .kpis,.phases{grid-template-columns:1fr}
+    .wrap{padding:0 18px}
+    .top{padding:12px 0}
+    h1.hero-title{font-size:30px}
+  }
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;z-index:200;box-shadow:0 18px 40px rgba(0,0,0,.25);opacity:0;transform:translateY(8px);transition:all .2s}
+  .toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;width:100%">
+    <div class="brand">
+      <div class="mark"><img src="./eand-logo.png" alt="e&amp; logo" /></div>
+      <div class="t"><b>e&amp; Enterprise</b><small>Governance · IoT &amp; NOC</small></div>
+    </div>
+    <nav class="nav">
+      <a class="btn" href="#plan">Plan</a>
+      <a class="btn primary" href="./talent-pool.html">Talent Portal →</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="hero wrap">
+  <div class="eyebrow">Summarised Plan</div>
+  <h1 class="hero-title">IoT &amp; NOC <span class="accent">30·60·90</span> Day<br/>Transformation Plan</h1>
+  <p class="sub"><b>People · Process · Systems.</b> A structured, time-boxed program to close operational gaps, automate KPIs, and elevate NOC service maturity across the e&amp; ecosystem.</p>
+
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">Active Projects</div><div class="num" id="kProjects">—</div><div class="note">Distinct project initiatives tracked</div></div>
+    <div class="kpi b"><div class="lbl">Action Points</div><div class="num" id="kActions">—</div><div class="note">Identified gaps &amp; suggested solutions</div></div>
+    <div class="kpi g"><div class="lbl">Phases</div><div class="num">3</div><div class="note">Foundation · Enablement · Excellence+</div></div>
+  </div>
+
+  <div class="phases">
+    <div class="pb bl">
+      <div><div class="lbl">Phase 1</div><div class="ttl">Day 1–30 · Foundation<small>Stabilise · Restructure · Govern</small></div></div>
+      <div class="num" id="pN30">—</div>
+    </div>
+    <div class="pb gd">
+      <div><div class="lbl">Phase 2</div><div class="ttl">Day 31–60 · Enablement<small>Automate · Align · Resource</small></div></div>
+      <div class="num" id="pN60">—</div>
+    </div>
+    <div class="pb gr">
+      <div><div class="lbl">Phase 3</div><div class="ttl">Day 61–90 · Excellence+<small>Scale · Optimise · Secure</small></div></div>
+      <div class="num" id="pN90">—</div>
+    </div>
+  </div>
+</section>
+
+<section class="section wrap" id="plan">
+  <div class="sec-head">
+    <div>
+      <h2>Transformation Plan</h2>
+      <div class="desc">A consolidated matrix of suggested solutions across People, Process and Systems for each phase.</div>
+    </div>
+    <div class="filters">
+      <span style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-right:4px">Rows:</span>
+      <button class="chip on" data-row="all">All</button>
+      <button class="chip" data-row="People">People</button>
+      <button class="chip" data-row="Process">Process</button>
+      <button class="chip" data-row="Systems">Systems</button>
+      <span style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 4px 0 10px">Cols:</span>
+      <button class="chip on" data-col="all">All</button>
+      <button class="chip" data-col="30">30</button>
+      <button class="chip" data-col="60">60</button>
+      <button class="chip" data-col="90">90</button>
+      <span style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 4px 0 10px">Status:</span>
+      <button class="chip on" data-status="all">All</button>
+      <button class="chip" data-status="pending">Pending</button>
+      <button class="chip" data-status="inprogress">In Progress</button>
+      <button class="chip" data-status="escalated">Escalated</button>
+      <button class="chip" data-status="completed">Completed</button>
+      <span style="font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 4px 0 10px">Severity:</span>
+      <button class="chip on" data-sev="all">All</button>
+      <button class="chip" data-sev="low">Low</button>
+      <button class="chip" data-sev="medium">Medium</button>
+      <button class="chip" data-sev="high">High</button>
+      <button class="chip" data-sev="critical">Critical</button>
+      <label class="toggle"><input type="checkbox" id="ownToggle" checked />Show owners</label>
+      <div class="actions" style="margin-left:8px">
+        <button class="btn-x" onclick="exportPNG()">Export PNG</button>
+        <button class="btn-x dark" onclick="exportPDF()">Export PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="matrix" class="matrix"></div>
+</section>
+
+<section class="wrap upload-zone">
+  <div class="up-toggle" onclick="document.getElementById('upPanel').classList.toggle('open')">⌃ Admin · Upload Action Plan</div>
+  <div id="upPanel" class="up-panel">
+    <div class="drop" id="drop">
+      <b>Drop your transformation plan Excel here</b>
+      <small>.xlsx or .csv · Replaces current plan for everyone (cloud-synced)</small>
+      <input type="file" id="fi" accept=".xlsx,.xls,.csv" style="display:none" />
+    </div>
+    <div class="up-row">
+      <button class="btn-x" onclick="document.getElementById('fi').click()">Choose file</button>
+      <button class="btn-x" onclick="if(confirm('Clear current plan for all users?')) clearCloud()">Clear plan</button>
+      <span style="font-size:11px;color:var(--muted)" id="upStatus"></span>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="wrap">
+  <div>© <span id="yr"></span> e&amp; Enterprise · Governance Team</div>
+  <div>IoT &amp; NOC · 30·60·90 Plan · CBO Office</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL='https://rbyyzkhlnhhexruxlhtw.supabase.co';
+const SUPABASE_KEY='sb_publishable_GVE5aoY-ckfNbefdcJHXhg_5ramPbt5';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+document.getElementById('yr').textContent=new Date().getFullYear();
+
+let DATA=[]; // {id,category,phase,action,owner,project,status,severity}
+let FILT={row:'all',col:'all',status:'all',sev:'all'};
+const STATUSES=['pending','inprogress','escalated','completed'];
+const SEVERITIES=['low','medium','high','critical'];
+const STATUS_LABEL={pending:'Pending',inprogress:'In Progress',escalated:'Escalated',completed:'Completed'};
+const SEV_LABEL={low:'Low',medium:'Medium',high:'High',critical:'Critical'};
+function normStatus(v){const s=String(v||'').toLowerCase().replace(/[\s_-]/g,'');if(s.includes('progress'))return'inprogress';if(s.includes('escal'))return'escalated';if(s.includes('complet')||s==='done')return'completed';return'pending'}
+function normSev(v){const s=String(v||'').toLowerCase().trim();if(s.startsWith('crit'))return'critical';if(s.startsWith('high'))return'high';if(s.startsWith('low'))return'low';return'medium'}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),2400)}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function normCat(v){const s=String(v||'').toLowerCase().trim();if(s.startsWith('peop'))return'People';if(s.startsWith('proc'))return'Process';if(s.startsWith('sys'))return'Systems';return null}
+function normPhase(v){const s=String(v||'').toLowerCase();if(s.includes('30'))return'30';if(s.includes('60'))return'60';if(s.includes('90'))return'90';return null}
+
+async function loadCloud(){
+  try{
+    const {data,error}=await sb.from('transformation_plan').select('*').order('created_at',{ascending:true});
+    if(error) throw error;
+    DATA=(data||[]).map(r=>({id:r.id,category:r.category,phase:r.phase,action:r.action,owner:r.owner||'',project:r.project||'',status:normStatus(r.status),severity:normSev(r.severity)}));
+    render();
+  }catch(e){console.error(e);toast('Cloud load failed — showing local view')}
+}
+
+function computeKPIs(){
+  const projects=new Set();DATA.forEach(r=>{if(r.project && r.project.trim())projects.add(r.project.trim().toLowerCase())});
+  document.getElementById('kProjects').textContent=projects.size||'0';
+  document.getElementById('kActions').textContent=DATA.length||'0';
+  const c={'30':0,'60':0,'90':0};DATA.forEach(r=>{if(c[r.phase]!=null)c[r.phase]++});
+  document.getElementById('pN30').textContent=c['30'];
+  document.getElementById('pN60').textContent=c['60'];
+  document.getElementById('pN90').textContent=c['90'];
+}
+
+const ROWS=['People','Process','Systems'];
+const COLS=[{k:'30',t:'Day 1–30',s:'Foundation',c:'bl'},{k:'60',t:'Day 31–60',s:'Enablement',c:'gd'},{k:'90',t:'Day 61–90',s:'Excellence+',c:'gr'}];
+
+function render(){
+  computeKPIs();
+  const showOwn=document.getElementById('ownToggle').checked;
+  const m=document.getElementById('matrix');
+  const rowsShow=FILT.row==='all'?ROWS:[FILT.row];
+  const colsShow=FILT.col==='all'?COLS:COLS.filter(c=>c.k===FILT.col);
+  m.style.gridTemplateColumns=`130px repeat(${colsShow.length},1fr)`;
+  let html=`<div class="mh empty"></div>`;
+  colsShow.forEach(c=>{html+=`<div class="mh ${c.c}">${c.t}<small>${c.s}</small></div>`});
+  rowsShow.forEach(rk=>{
+    html+=`<div class="rh ${rk.toLowerCase()}">${rk}</div>`;
+    colsShow.forEach(c=>{
+      const items=DATA.filter(r=>r.category===rk && r.phase===c.k
+        && (FILT.status==='all'||r.status===FILT.status)
+        && (FILT.sev==='all'||r.severity===FILT.sev));
+      const phaseTag=c.k+'D';
+      if(items.length===0){
+        html+=`<div class="cell ${rk.toLowerCase()}"><span class="ptag">${phaseTag}</span><div class="emp">No items yet</div></div>`;
+      }else{
+        const lis=items.map(it=>{
+          const ownHtml=showOwn && it.owner?`<span class="own">→ ${esc(it.owner)}${it.project?' · '+esc(it.project):''}</span>`:'';
+          const meta=`<span class="meta">`
+            +`<span class="badge st-${it.status}" data-cycle="status" data-id="${it.id}" title="Click to cycle status">${STATUS_LABEL[it.status]}</span>`
+            +`<span class="badge sv-${it.severity}" data-cycle="severity" data-id="${it.id}" title="Click to cycle severity">${SEV_LABEL[it.severity]}</span>`
+            +`</span>`;
+          return `<li>${esc(it.action)}${ownHtml}${meta}</li>`;
+        }).join('');
+        html+=`<div class="cell ${rk.toLowerCase()}"><span class="ptag">${phaseTag}</span><ul>${lis}</ul></div>`;
+      }
+    });
+  });
+  m.innerHTML=html;
+  m.querySelectorAll('.badge[data-cycle]').forEach(b=>b.onclick=()=>cycleBadge(b.dataset.id,b.dataset.cycle));
+}
+
+async function cycleBadge(id,field){
+  const row=DATA.find(r=>r.id===id);if(!row)return;
+  const list=field==='status'?STATUSES:SEVERITIES;
+  const cur=row[field==='status'?'status':'severity'];
+  const next=list[(list.indexOf(cur)+1)%list.length];
+  if(field==='status')row.status=next;else row.severity=next;
+  render();
+  try{
+    const patch=field==='status'?{status:next}:{severity:next};
+    const {error}=await sb.from('transformation_plan').update(patch).eq('id',id);
+    if(error)throw error;
+  }catch(e){toast('Save failed: '+e.message)}
+}
+
+// Filters
+document.querySelectorAll('.chip[data-row]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-row]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.row=b.dataset.row;render()});
+document.querySelectorAll('.chip[data-col]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-col]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.col=b.dataset.col;render()});
+document.querySelectorAll('.chip[data-status]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-status]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.status=b.dataset.status;render()});
+document.querySelectorAll('.chip[data-sev]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip[data-sev]').forEach(x=>x.classList.remove('on'));b.classList.add('on');FILT.sev=b.dataset.sev;render()});
+document.getElementById('ownToggle').onchange=render;
+
+// Upload
+const drop=document.getElementById('drop'),fi=document.getElementById('fi');
+drop.onclick=()=>fi.click();
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag')}));
+drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0])});
+fi.onchange=e=>{if(e.target.files[0])handleFile(e.target.files[0])};
+
+async function handleFile(f){
+  document.getElementById('upStatus').textContent='Parsing '+f.name+'…';
+  try{
+    const buf=await f.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+    if(!rows.length){toast('Empty file');document.getElementById('upStatus').textContent='';return}
+    // detect columns flexibly
+    const sample=rows[0];const keys=Object.keys(sample);
+    const find=(...needles)=>keys.find(k=>{const s=k.toLowerCase().replace(/\s+/g,'');return needles.some(n=>s.includes(n))});
+    const kCat=find('gaparea','area','category');
+    const kPhase=find('term','phase','timeline');
+    const kAction=find('suggestedsolution','solution','action','recommendation');
+    const kOwner=find('owner','assigned');
+    const kProj=find('project');
+    const kStatus=find('status');
+    const kSev=find('severity','priority');
+    const parsed=[];
+    rows.forEach(r=>{
+      const cat=normCat(kCat?r[kCat]:'');
+      const ph=normPhase(kPhase?r[kPhase]:'');
+      const act=(kAction?r[kAction]:'')||'';
+      if(cat && ph && String(act).trim()){
+        parsed.push({category:cat,phase:ph,action:String(act).trim(),owner:String((kOwner?r[kOwner]:'')||'').trim(),project:String((kProj?r[kProj]:'')||'').trim(),status:normStatus(kStatus?r[kStatus]:''),severity:normSev(kSev?r[kSev]:'')});
+      }
+    });
+    if(!parsed.length){toast('No valid rows found (need Gap Area, Term, Suggested Solution)');document.getElementById('upStatus').textContent='';return}
+    document.getElementById('upStatus').textContent='Saving '+parsed.length+' rows to cloud…';
+    await sb.from('transformation_plan').delete().neq('id','00000000-0000-0000-0000-000000000000');
+    // chunk inserts
+    for(let i=0;i<parsed.length;i+=200){
+      const chunk=parsed.slice(i,i+200);
+      const {error}=await sb.from('transformation_plan').insert(chunk);
+      if(error)throw error;
+    }
+    document.getElementById('upStatus').textContent='Synced ✓ '+parsed.length+' rows';
+    toast('Plan uploaded & synced to all users');
+    await loadCloud();
+  }catch(e){console.error(e);toast('Upload failed: '+e.message);document.getElementById('upStatus').textContent='Failed'}
+}
+
+async function clearCloud(){
+  try{await sb.from('transformation_plan').delete().neq('id','00000000-0000-0000-0000-000000000000');toast('Plan cleared');await loadCloud()}
+  catch(e){toast('Clear failed: '+e.message)}
+}
+
+// Exports
+async function exportPNG(){
+  const node=document.getElementById('matrix');
+  const canvas=await html2canvas(node,{backgroundColor:'#ffffff',scale:2});
+  const a=document.createElement('a');a.download='transformation-plan.png';a.href=canvas.toDataURL('image/png');a.click();
+}
+async function exportPDF(){
+  const node=document.getElementById('matrix');
+  const canvas=await html2canvas(node,{backgroundColor:'#ffffff',scale:2});
+  const img=canvas.toDataURL('image/png');
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:'landscape',unit:'pt',format:'a3'});
+  const pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();
+  const r=Math.min((pw-40)/canvas.width,(ph-80)/canvas.height);
+  const w=canvas.width*r,h=canvas.height*r;
+  pdf.setFont('helvetica','bold');pdf.setFontSize(16);pdf.text('e& Enterprise · IoT & NOC 30-60-90 Transformation Plan',20,30);
+  pdf.setFont('helvetica','normal');pdf.setFontSize(10);pdf.text(new Date().toLocaleString(),20,46);
+  pdf.addImage(img,'PNG',(pw-w)/2,60,w,h);
+  pdf.save('transformation-plan.pdf');
+}
+
+// Realtime
+sb.channel('tp').on('postgres_changes',{event:'*',schema:'public',table:'transformation_plan'},()=>loadCloud()).subscribe();
+
+loadCloud();
+</script>
+</body>
+</html>
