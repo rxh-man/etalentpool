@@ -13,6 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundled.js"></script>
 <style>
   :root{
     --bg:#ffffff; --ink:#0d0d12; --muted:#6b7280; --line:#e6e6ea;
@@ -176,6 +177,7 @@
     </div>
     <nav class="nav">
       <a class="btn" href="#plan">Plan</a>
+      <button class="btn" onclick="exportGovPPT()" style="border-color:var(--maroon);color:var(--maroon);background:#fff;cursor:pointer;font-weight:600">Export Slide ↓</button>
       <a class="btn primary" href="./talent-pool.html">Talent Portal →</a>
     </nav>
   </div>
@@ -212,22 +214,24 @@
 <section class="section wrap" id="intake">
   <div class="sec-head" style="margin-bottom:18px">
     <div>
-      <div class="eyebrow" style="font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#9aa0a6;font-weight:700;margin-bottom:10px">Vendor Talent Intake — Field Assessment</div>
-      <h2 style="font-size:36px;letter-spacing:-.02em;font-weight:600;margin:0">From <span id="sN" style="color:var(--maroon);font-variant-numeric:tabular-nums">—</span> applicants to <span id="sSel" style="color:#0d7a5f;font-variant-numeric:tabular-nums">—</span> field-ready hires.</h2>
-      <div class="desc" style="margin-top:10px;max-width:780px;font-size:14.5px;line-height:1.65;color:#5a5e66">
-        Two vendors — <b>Maxthon</b> and <b>Shams</b> — were screened on-site across <span id="sDates">—</span>. Each candidate was evaluated on technical depth, communication, driving licence and field readiness. The result: a curated, deployable workforce ready for IoT &amp; NOC rollout.
+      <div class="eyebrow" style="font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#9aa0a6;font-weight:700;margin-bottom:10px">Governance Talent Pool — Project Allocation</div>
+      <h2 style="font-size:36px;letter-spacing:-.02em;font-weight:600;margin:0">From <span id="govPool" style="color:var(--maroon);font-variant-numeric:tabular-nums">97</span> candidates in pool to <span id="govSelTotal" style="color:#0d7a5f;font-variant-numeric:tabular-nums">48</span> selected for live projects.</h2>
+      <div class="desc" style="margin-top:10px;max-width:820px;font-size:14.5px;line-height:1.65;color:#5a5e66">
+        A unified governance-managed talent pool feeding multiple e&amp; projects. Upload the latest assessment sheet for any project to refresh its allocation numbers live — works on GitHub Pages and any static host.
       </div>
     </div>
   </div>
 
-  <div class="kpis" style="grid-template-columns:repeat(4,1fr);margin-top:0">
-    <div class="kpi"><div class="lbl">Total Applicants</div><div class="num" id="tTotal">—</div><div class="note">Combined pool from both vendors</div></div>
-    <div class="kpi b"><div class="lbl">Assessed</div><div class="num" id="tAssessed">—</div><div class="note" id="tAssessedRate">— attended interview</div></div>
-    <div class="kpi g"><div class="lbl">Selected</div><div class="num" id="tSelected">—</div><div class="note" id="tSelectedRate">— of assessed cleared</div></div>
-    <div class="kpi y"><div class="lbl">Waiting List</div><div class="num" id="tWait">—</div><div class="note">Strong candidates held for next wave</div></div>
+  <div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-top:0">
+    <div class="kpi"><div class="lbl">Total Candidates in Pool</div><div class="num" id="kPool">97</div><div class="note">Governance-curated talent reserve</div></div>
+    <div class="kpi b"><div class="lbl">Total Requested (Etihad WE)</div><div class="num" id="kReq">88</div><div class="note">Headcount asked by project</div></div>
+    <div class="kpi g"><div class="lbl">Selected for Etihad WE</div><div class="num" id="kSel">48</div><div class="note" id="kSelNote">48 of 88 requested</div></div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px" id="vendorCards"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px" id="govPanels"></div>
+
+  <input type="file" id="upEtihad" accept=".xlsx,.xls,.csv" style="display:none" />
+  <input type="file" id="upTaqa" accept=".xlsx,.xls,.csv" style="display:none" />
 </section>
 
 <section class="section wrap" id="plan">
@@ -485,68 +489,161 @@ sb.channel('tp').on('postgres_changes',{event:'*',schema:'public',table:'transfo
 
 loadCloud();
 
-async function loadTalent(){
-  try{
-    const {data,error}=await sb.from('candidates').select('company,attendance,final_status,interview_date,designation');
-    if(error) throw error;
-    const rows=data||[];
-    const isSel=v=>/^selected$/i.test(String(v||'').trim());
-    const isWait=v=>/wait/i.test(String(v||''));
-    const hasAtt=v=>String(v||'').trim()!=='';
-    const total=rows.length;
-    const assessed=rows.filter(r=>hasAtt(r.attendance)).length;
-    const selected=rows.filter(r=>isSel(r.final_status)).length;
-    const wait=rows.filter(r=>isWait(r.final_status)).length;
-    const dates=[...new Set(rows.map(r=>r.interview_date).filter(Boolean))].sort();
-    const dateRange=dates.length?(dates[0]+(dates.length>1?' → '+dates[dates.length-1]:'')):'May 2026';
-    document.getElementById('sN').textContent=total;
-    document.getElementById('sSel').textContent=selected;
-    document.getElementById('sDates').textContent=dateRange;
-    document.getElementById('tTotal').textContent=total;
-    document.getElementById('tAssessed').textContent=assessed;
-    document.getElementById('tAssessedRate').textContent=Math.round(assessed/total*100)+'% of applicants interviewed';
-    document.getElementById('tSelected').textContent=selected;
-    document.getElementById('tSelectedRate').textContent=Math.round(selected/Math.max(assessed,1)*100)+'% of assessed cleared';
-    document.getElementById('tWait').textContent=wait;
-
-    const vendors=['Maxthon','Shams'].map(v=>{
-      const vr=rows.filter(r=>String(r.company||'').toLowerCase()===v.toLowerCase());
-      const va=vr.filter(r=>hasAtt(r.attendance)).length;
-      const vs=vr.filter(r=>isSel(r.final_status)).length;
-      const vw=vr.filter(r=>isWait(r.final_status)).length;
-      const vn=vr.filter(r=>/not\s*selected|reject/i.test(r.final_status||'')).length;
-      const drv=vr.filter(r=>/yes/i.test(r.designation||'')||/driver/i.test(r.designation||'')).length;
-      const rate=va?Math.round(vs/va*100):0;
-      const color=v==='Maxthon'?'#1f4e79':'#7c3a1c';
-      const accent=v==='Maxthon'?'#3b82f6':'#c9a84c';
-      return {v,total:vr.length,va,vs,vw,vn,rate,color,accent};
-    });
-    document.getElementById('vendorCards').innerHTML=vendors.map(d=>`
-      <div style="background:#fff;border:1px solid #ececef;border-radius:6px;padding:28px 30px;position:relative;overflow:hidden">
-        <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:${d.color}"></div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:6px">
-          <div>
-            <div style="font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#9aa0a6;font-weight:700">Vendor</div>
-            <h3 style="font-size:26px;font-weight:600;letter-spacing:-.02em;margin:6px 0 0;color:#0a0a0f">${d.v}</h3>
-          </div>
-          <div style="text-align:right">
-            <div style="font-family:'Inter';font-size:44px;font-weight:500;line-height:1;color:${d.color};font-variant-numeric:tabular-nums;letter-spacing:-.03em">${d.rate}%</div>
-            <div style="font-size:11px;color:#7a7e87;margin-top:4px;letter-spacing:.04em">Selection rate</div>
-          </div>
-        </div>
-        <div style="font-size:13.5px;color:#5a5e66;line-height:1.6;margin:14px 0 20px;padding:14px 0;border-top:1px solid #f1f1f4;border-bottom:1px solid #f1f1f4">
-          <b style="color:#0a0a0f">${d.va}</b> of <b style="color:#0a0a0f">${d.total}</b> candidates assessed on-site. <b style="color:#0d7a5f">${d.vs} selected</b> for immediate deployment, <b style="color:#b8860b">${d.vw} retained</b> on the waiting list${d.vn?`, <b style="color:#b42318">${d.vn} declined</b>`:''}.
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
-          <div><div style="font-family:'Inter';font-size:22px;font-weight:500;color:#0a0a0f;font-variant-numeric:tabular-nums">${d.total}</div><div style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#9aa0a6;margin-top:3px">Pool</div></div>
-          <div><div style="font-family:'Inter';font-size:22px;font-weight:500;color:#1f4e79;font-variant-numeric:tabular-nums">${d.va}</div><div style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#9aa0a6;margin-top:3px">Assessed</div></div>
-          <div><div style="font-family:'Inter';font-size:22px;font-weight:500;color:#0d7a5f;font-variant-numeric:tabular-nums">${d.vs}</div><div style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#9aa0a6;margin-top:3px">Selected</div></div>
-          <div><div style="font-family:'Inter';font-size:22px;font-weight:500;color:#b8860b;font-variant-numeric:tabular-nums">${d.vw}</div><div style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#9aa0a6;margin-top:3px">Waitlist</div></div>
-        </div>
-      </div>`).join('');
-  }catch(e){console.error('talent',e)}
+/* ============ GOVERNANCE TALENT POOL ============ */
+const GOV_POOL_TOTAL=97;
+const GOV_DEFAULTS={
+  etihad:{requested:88,selected:48,waiting:19,notSelected:22,pending:8,hasData:true},
+  taqa:{requested:null,selected:null,waiting:null,notSelected:null,pending:null,hasData:false}
+};
+function govLoad(){
+  try{const s=localStorage.getItem('govProjects');if(s)return Object.assign({},GOV_DEFAULTS,JSON.parse(s));}catch(e){}
+  return GOV_DEFAULTS;
 }
-loadTalent();
+function govSave(d){try{localStorage.setItem('govProjects',JSON.stringify(d))}catch(e){}}
+let GOV=govLoad();
+
+function renderGov(){
+  const e=GOV.etihad, t=GOV.taqa;
+  document.getElementById('kPool').textContent=GOV_POOL_TOTAL;
+  document.getElementById('kReq').textContent=e.requested??'—';
+  document.getElementById('kSel').textContent=e.selected??'—';
+  document.getElementById('kSelNote').textContent=(e.selected??'—')+' of '+(e.requested??'—')+' requested';
+  document.getElementById('govSelTotal').textContent=(e.selected||0)+(t.selected||0);
+  document.getElementById('govPanels').innerHTML=panelHTML('etihad',e)+panelHTML('taqa',t);
+  document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>document.getElementById(b.dataset.up==='etihad'?'upEtihad':'upTaqa').click());
+}
+function panelHTML(key,d){
+  const isE=key==='etihad';
+  const title=isE?'Etihad WE Selection':'TAQA Selection';
+  const sub=isE
+    ? `${d.requested??'—'} candidates requested · ${d.selected??'—'} selected from pool`
+    : 'Data pending — awaiting update from TAQA Project Manager';
+  const pct=(d.hasData&&d.requested)?Math.round((d.selected||0)/d.requested*100):0;
+  const barColor=isE?'#0d7a5f':'#c9c9d0';
+  const stats=[
+    ['Requested',d.requested],['Selected',d.selected],['Waiting List',d.waiting],['Not Selected',d.notSelected],['Pending',d.pending]
+  ];
+  const uploadLabel=isE?'Upload Etihad WE Assessment':'Upload TAQA LOS File';
+  const banner=isE?'':`<div style="background:#fff7e6;border:1px solid #f0d894;color:#7a5a10;padding:10px 14px;border-radius:6px;font-size:13px;margin:14px 0 16px">⏳ Pending submission from TAQA Project Manager (LOS)</div>`;
+  return `
+  <div style="background:#fff;border:1px solid #ececef;border-radius:6px;padding:26px 28px;position:relative;overflow:hidden;display:flex;flex-direction:column">
+    <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--maroon)"></div>
+    <div style="font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:#9aa0a6;font-weight:700">Project</div>
+    <h3 style="font-size:24px;font-weight:600;letter-spacing:-.02em;margin:6px 0 6px;color:#0a0a0f">${title}</h3>
+    <div style="font-size:13.5px;color:#5a5e66;line-height:1.5;margin-bottom:16px">${sub}</div>
+    ${banner}
+    <div style="margin:4px 0 18px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#0a0a0f;margin-bottom:6px">
+        <span>${d.hasData?`${d.selected}/${d.requested} allocated`:'Awaiting data'}</span>
+        <span style="color:${isE?'#0d7a5f':'#9aa0a6'}">${d.hasData?pct+'%':'—'}</span>
+      </div>
+      <div style="height:10px;background:#f1f1f4;border-radius:6px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${barColor};border-radius:6px;transition:width .4s"></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:14px 0;border-top:1px solid #f1f1f4;border-bottom:1px solid #f1f1f4;margin-bottom:18px">
+      ${stats.map(([l,v])=>`<div><div style="font-family:'Inter';font-size:20px;font-weight:600;color:#0a0a0f;font-variant-numeric:tabular-nums">${v??'—'}</div><div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#9aa0a6;margin-top:4px;font-weight:600">${l}</div></div>`).join('')}
+    </div>
+    <div style="margin-top:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <button data-up="${key}" style="padding:9px 16px;border:1px solid var(--maroon);background:#fff;color:var(--maroon);border-radius:6px;font-weight:600;font-size:13px;cursor:pointer">⤴ ${uploadLabel}</button>
+      <span style="font-size:12px;color:#9aa0a6" id="upStat_${key}"></span>
+    </div>
+  </div>`;
+}
+
+async function handleGovUpload(file,key){
+  const stat=document.getElementById('upStat_'+key);
+  if(stat) stat.textContent='Parsing '+file.name+'…';
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+    if(!rows.length) throw new Error('empty sheet');
+    const keys=Object.keys(rows[0]);
+    const find=(...n)=>keys.find(k=>{const s=k.toLowerCase().replace(/\s+/g,'');return n.some(x=>s.includes(x))});
+    const kStat=find('finalstatus','status','decision','result');
+    const kAtt=find('attendance','attended','interview');
+    let selected=0,waiting=0,notSel=0,pending=0;
+    rows.forEach(r=>{
+      const s=String(kStat?r[kStat]:'').toLowerCase().trim();
+      if(/wait/.test(s)) waiting++;
+      else if(/^selected$|^select$|recommend|approved|cleared/.test(s)) selected++;
+      else if(/not\s*selected|reject|decline|fail/.test(s)) notSel++;
+      else pending++;
+    });
+    const requested=rows.length;
+    GOV[key]={requested,selected,waiting,notSelected:notSel,pending,hasData:true};
+    govSave(GOV);
+    renderGov();
+    if(stat) stat.textContent='Updated ✓ '+requested+' rows';
+    toast((key==='etihad'?'Etihad WE':'TAQA')+' pool updated');
+  }catch(e){console.error(e);if(stat)stat.textContent='Failed: '+e.message;toast('Upload failed: '+e.message)}
+}
+document.getElementById('upEtihad').onchange=e=>e.target.files[0]&&handleGovUpload(e.target.files[0],'etihad');
+document.getElementById('upTaqa').onchange=e=>e.target.files[0]&&handleGovUpload(e.target.files[0],'taqa');
+renderGov();
+
+/* ============ EXPORT TO POWERPOINT ============ */
+async function exportGovPPT(){
+  try{
+    if(!window.PptxGenJS){toast('PPT library still loading…');return}
+    const pptx=new PptxGenJS();
+    pptx.layout='LAYOUT_WIDE'; // 13.333 x 7.5
+    const MAROON='8B0000', GOLD='C9A84C', INK='0A0A0F', MUTED='6B7280';
+    const e=GOV.etihad, t=GOV.taqa;
+
+    // Slide 1 — Cover / KPIs
+    const s1=pptx.addSlide();
+    s1.background={color:'FFFFFF'};
+    s1.addShape('rect',{x:0,y:0,w:13.333,h:0.55,fill:{color:MAROON}});
+    s1.addText('e& Enterprise · Governance Talent Pool',{x:0.4,y:0.07,w:12,h:0.42,fontSize:16,bold:true,color:'FFFFFF',fontFace:'Calibri'});
+    s1.addText('Governance Talent Pool',{x:0.5,y:0.85,w:12,h:0.6,fontSize:32,bold:true,color:INK,fontFace:'Calibri'});
+    s1.addText('Project allocation summary · '+new Date().toLocaleDateString(),{x:0.5,y:1.5,w:12,h:0.35,fontSize:14,color:MUTED,fontFace:'Calibri'});
+
+    const kpis=[
+      {l:'Total Candidates in Pool',v:GOV_POOL_TOTAL,n:'Governance-curated reserve'},
+      {l:'Total Requested (Etihad WE)',v:e.requested??'—',n:'Headcount asked by project'},
+      {l:'Selected for Etihad WE',v:e.selected??'—',n:(e.selected??'—')+' of '+(e.requested??'—')+' requested'}
+    ];
+    kpis.forEach((k,i)=>{
+      const x=0.5+i*4.2;
+      s1.addShape('rect',{x,y:2.2,w:4,h:1.8,fill:{color:'FFFFFF'},line:{color:'ECECEF',width:1}});
+      s1.addShape('rect',{x,y:2.2,w:0.06,h:1.8,fill:{color:MAROON},line:{color:MAROON}});
+      s1.addText(k.l,{x:x+0.25,y:2.3,w:3.7,h:0.3,fontSize:10,bold:true,color:MUTED,fontFace:'Calibri',charSpacing:2});
+      s1.addText(String(k.v),{x:x+0.25,y:2.65,w:3.7,h:0.8,fontSize:44,bold:true,color:INK,fontFace:'Calibri'});
+      s1.addText(k.n,{x:x+0.25,y:3.5,w:3.7,h:0.3,fontSize:11,color:MUTED,fontFace:'Calibri'});
+    });
+
+    // Project panels
+    const panels=[
+      {title:'Etihad WE Selection',sub:(e.requested||0)+' requested · '+(e.selected||0)+' selected',d:e,x:0.5},
+      {title:'TAQA Selection',sub:t.hasData?(t.requested+' requested · '+t.selected+' selected'):'Data pending — awaiting TAQA PM',d:t,x:6.85}
+    ];
+    panels.forEach(p=>{
+      s1.addShape('rect',{x:p.x,y:4.3,w:6,h:2.8,fill:{color:'FFFFFF'},line:{color:'ECECEF',width:1}});
+      s1.addShape('rect',{x:p.x,y:4.3,w:0.06,h:2.8,fill:{color:MAROON},line:{color:MAROON}});
+      s1.addText(p.title,{x:p.x+0.25,y:4.4,w:5.6,h:0.4,fontSize:18,bold:true,color:INK,fontFace:'Calibri'});
+      s1.addText(p.sub,{x:p.x+0.25,y:4.8,w:5.6,h:0.3,fontSize:11,color:MUTED,fontFace:'Calibri'});
+      const pct=(p.d.hasData&&p.d.requested)?Math.round(p.d.selected/p.d.requested*100):0;
+      s1.addShape('rect',{x:p.x+0.25,y:5.25,w:5.5,h:0.18,fill:{color:'F1F1F4'},line:{color:'F1F1F4'}});
+      if(pct>0) s1.addShape('rect',{x:p.x+0.25,y:5.25,w:5.5*pct/100,h:0.18,fill:{color:'0D7A5F'},line:{color:'0D7A5F'}});
+      s1.addText(pct+'% allocated',{x:p.x+0.25,y:5.45,w:5.5,h:0.3,fontSize:11,color:INK,bold:true,fontFace:'Calibri'});
+      const stats=[['Requested',p.d.requested],['Selected',p.d.selected],['Waiting',p.d.waiting],['Not Sel.',p.d.notSelected],['Pending',p.d.pending]];
+      stats.forEach((st,i)=>{
+        const sx=p.x+0.25+i*1.15;
+        s1.addText(String(st[1]??'—'),{x:sx,y:5.95,w:1.1,h:0.45,fontSize:18,bold:true,color:INK,fontFace:'Calibri'});
+        s1.addText(st[0],{x:sx,y:6.4,w:1.1,h:0.3,fontSize:9,color:MUTED,bold:true,fontFace:'Calibri',charSpacing:1});
+      });
+    });
+
+    s1.addText('© '+new Date().getFullYear()+' e& Enterprise · Governance Team',{x:0.4,y:7.1,w:12,h:0.3,fontSize:10,color:MUTED,fontFace:'Calibri'});
+
+    const fn='Talent_Governance_Dashboard_'+new Date().toISOString().slice(0,10)+'.pptx';
+    await pptx.writeFile({fileName:fn});
+    toast('Slide exported');
+  }catch(e){console.error(e);toast('Export failed: '+e.message)}
+}
 </script>
 </body>
 </html>
