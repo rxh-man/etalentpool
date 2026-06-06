@@ -13,7 +13,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundled.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <style>
 :root{
   --maroon:#800000;
@@ -1127,8 +1127,8 @@ function govPanelHTML(key,d){
   const pct=(d.hasData&&d.requested)?Math.round((d.selected||0)/d.requested*100):0;
   const barColor=isE?'var(--green)':'#c9c9d0';
   const stats=[['Requested',d.requested],['Selected',d.selected],['Waiting List',d.waiting],['Not Selected',d.notSelected],['Pending',d.pending]];
-  const uploadLabel=isE?'Upload Etihad WE Assessment':'Upload TAQA LOS File';
-  const banner=isE?'':`<div style="background:var(--amber-bg);border:1px solid #f0d894;color:var(--amber);padding:10px 14px;border-radius:6px;font-size:13px;margin:0 0 14px;font-weight:500">⏳ Pending submission from TAQA Project Manager (LOS)</div>`;
+  const uploadLabel=isE?'Upload Etihad WE Assessment':'Upload TAQA Assessment';
+  const banner=isE?'':`<div style="background:var(--amber-bg);border:1px solid #f0d894;color:var(--amber);padding:10px 14px;border-radius:6px;font-size:13px;margin:0 0 14px;font-weight:500">⏳ Pending submission from TAQA Project Manager</div>`;
   return `
   <div class="card" style="padding:24px 26px;position:relative;overflow:hidden;display:flex;flex-direction:column">
     <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--maroon)"></div>
