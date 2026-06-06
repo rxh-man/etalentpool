@@ -13,6 +13,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundled.js"></script>
 <style>
   :root{
     --bg:#ffffff; --ink:#0d0d12; --muted:#6b7280; --line:#e6e6ea;
@@ -176,6 +177,7 @@
     </div>
     <nav class="nav">
       <a class="btn" href="#plan">Plan</a>
+      <button class="btn" onclick="exportGovPPT()" style="border-color:var(--maroon);color:var(--maroon);background:#fff;cursor:pointer;font-weight:600">Export Slide ↓</button>
       <a class="btn primary" href="./talent-pool.html">Talent Portal →</a>
     </nav>
   </div>
