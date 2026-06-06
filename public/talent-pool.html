@@ -511,6 +511,7 @@ function renderPage(){
   const el=$('#pageContent');
   if(state.page==='dashboard') return renderDashboard(el);
   if(state.page==='pool') return renderPool(el);
+  if(state.page==='governance') return renderGovernance(el);
   if(state.page==='upload') return renderUpload(el);
   if(state.page==='users') return renderUsers(el);
   if(state.page==='settings') return renderSettings(el);
