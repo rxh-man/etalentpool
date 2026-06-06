@@ -13,6 +13,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundled.js"></script>
 <style>
 :root{
   --maroon:#800000;
@@ -445,6 +446,7 @@ function navItem(id,label,svg,adminOnly=false){
 const I = {
   dash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
   pool:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="9" cy="8" r="3"/><path d="M3 21c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="17" cy="7" r="2.5"/><path d="M14.5 14c2.6.5 4.5 2.7 4.5 5.5"/></svg>',
+  gov:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg>',
   upload:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 16V4M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>',
   users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="8" cy="8" r="3.2"/><path d="M2 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.5 1.6-4.5 4-5"/></svg>',
   set:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
@@ -454,7 +456,7 @@ const I = {
 
 function renderShell(){
   const u=state.user;
-  const titles={dashboard:'Dashboard',pool:'Talent Pool',upload:'Upload Candidates',users:'User Management',settings:'Settings'};
+  const titles={dashboard:'Dashboard',governance:'Governance Talent Pool',pool:'Talent Pool',upload:'Upload Candidates',users:'User Management',settings:'Settings'};
   return `
   <div class="app">
     <aside class="sidebar" id="sidebar">
@@ -468,6 +470,7 @@ function renderShell(){
         <div class="nav-section">Overview</div>
         ${navItem('dashboard','Dashboard',I.dash)}
         ${navItem('pool','Talent Pool',I.pool)}
+        ${navItem('governance','Governance Pool',I.gov)}
         <div class="nav-section">Administration</div>
         ${navItem('upload','Upload Candidates',I.upload,true)}
         ${navItem('users','User Management',I.users,true)}
@@ -508,6 +511,7 @@ function renderPage(){
   const el=$('#pageContent');
   if(state.page==='dashboard') return renderDashboard(el);
   if(state.page==='pool') return renderPool(el);
+  if(state.page==='governance') return renderGovernance(el);
   if(state.page==='upload') return renderUpload(el);
   if(state.page==='users') return renderUsers(el);
   if(state.page==='settings') return renderSettings(el);
@@ -1072,6 +1076,165 @@ function exportPdf(rows){
   });
   doc.save(`eand-talent-pool-${new Date().toISOString().slice(0,10)}.pdf`);
   toast('PDF exported','ok');
+}
+
+/* ---------- Governance Talent Pool ---------- */
+const GOV_POOL_TOTAL=97;
+const GOV_DEFAULTS={
+  etihad:{requested:88,selected:48,waiting:19,notSelected:22,pending:8,hasData:true},
+  taqa:{requested:null,selected:null,waiting:null,notSelected:null,pending:null,hasData:false}
+};
+function govLoad(){ try{const s=localStorage.getItem('govProjects');if(s)return Object.assign({},GOV_DEFAULTS,JSON.parse(s));}catch(e){} return GOV_DEFAULTS; }
+function govSave(d){ try{localStorage.setItem('govProjects',JSON.stringify(d))}catch(e){} }
+let GOV=govLoad();
+
+function renderGovernance(el){
+  const e=GOV.etihad, t=GOV.taqa;
+  const selNote=(e.selected??'—')+' of '+(e.requested??'—')+' requested';
+  el.innerHTML=`
+  <div class="page-head">
+    <div>
+      <h1>Governance Talent Pool</h1>
+      <div class="sub">Unified governance-managed pool feeding multiple e&amp; projects. Upload an assessment sheet for any project to refresh allocation live.</div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="govExportPpt" style="border:1px solid var(--maroon);color:var(--maroon);background:#fff;padding:9px 16px;border-radius:6px;font-weight:600;font-size:13px">Export Slide ↓</button>
+    </div>
+  </div>
+  <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
+    <div class="kpi"><div class="label">Total Candidates in Pool</div><div class="value">${GOV_POOL_TOTAL}</div><div class="meta">Governance-curated talent reserve</div></div>
+    <div class="kpi"><div class="label">Total Requested (Etihad WE)</div><div class="value">${e.requested??'—'}</div><div class="meta">Headcount asked by project</div></div>
+    <div class="kpi green"><div class="label">Selected for Etihad WE</div><div class="value">${e.selected??'—'}</div><div class="meta">${selNote}</div></div>
+  </div>
+  <div class="gov-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px">
+    ${govPanelHTML('etihad',e)}
+    ${govPanelHTML('taqa',t)}
+  </div>
+  <input type="file" id="govUpEtihad" accept=".xlsx,.xls,.csv" style="display:none" />
+  <input type="file" id="govUpTaqa" accept=".xlsx,.xls,.csv" style="display:none" />
+  <style>@media(max-width:768px){.gov-grid{grid-template-columns:1fr!important}}</style>
+  `;
+  el.querySelectorAll('[data-govup]').forEach(b=>b.onclick=()=>document.getElementById(b.dataset.govup==='etihad'?'govUpEtihad':'govUpTaqa').click());
+  document.getElementById('govUpEtihad').onchange=ev=>ev.target.files[0]&&handleGovUpload(ev.target.files[0],'etihad',el);
+  document.getElementById('govUpTaqa').onchange=ev=>ev.target.files[0]&&handleGovUpload(ev.target.files[0],'taqa',el);
+  document.getElementById('govExportPpt').onclick=exportGovPPT;
+}
+
+function govPanelHTML(key,d){
+  const isE=key==='etihad';
+  const title=isE?'Etihad WE Selection':'TAQA Selection';
+  const sub=isE?`${d.requested??'—'} candidates requested · ${d.selected??'—'} selected from pool`:'Data pending — awaiting update from TAQA Project Manager';
+  const pct=(d.hasData&&d.requested)?Math.round((d.selected||0)/d.requested*100):0;
+  const barColor=isE?'var(--green)':'#c9c9d0';
+  const stats=[['Requested',d.requested],['Selected',d.selected],['Waiting List',d.waiting],['Not Selected',d.notSelected],['Pending',d.pending]];
+  const uploadLabel=isE?'Upload Etihad WE Assessment':'Upload TAQA LOS File';
+  const banner=isE?'':`<div style="background:var(--amber-bg);border:1px solid #f0d894;color:var(--amber);padding:10px 14px;border-radius:6px;font-size:13px;margin:0 0 14px;font-weight:500">⏳ Pending submission from TAQA Project Manager (LOS)</div>`;
+  return `
+  <div class="card" style="padding:24px 26px;position:relative;overflow:hidden;display:flex;flex-direction:column">
+    <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--maroon)"></div>
+    <div style="font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:700">Project</div>
+    <h3 style="font-size:22px;font-weight:700;margin:6px 0 6px;color:var(--ink)">${title}</h3>
+    <div style="font-size:13.5px;color:var(--muted);line-height:1.5;margin-bottom:16px">${sub}</div>
+    ${banner}
+    <div style="margin:0 0 18px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px">
+        <span>${d.hasData?`${d.selected}/${d.requested} allocated`:'Awaiting data'}</span>
+        <span style="color:${isE?'var(--green)':'var(--muted)'}">${d.hasData?pct+'%':'—'}</span>
+      </div>
+      <div style="height:10px;background:#f1eaeb;border-radius:6px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${barColor};border-radius:6px;transition:width .4s"></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:18px">
+      ${stats.map(([l,v])=>`<div><div style="font-family:'Sora';font-size:20px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums">${v??'—'}</div><div style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px;font-weight:600">${l}</div></div>`).join('')}
+    </div>
+    <div style="margin-top:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <button data-govup="${key}" class="btn btn-primary" style="padding:10px 18px;font-size:13px">⤴ ${uploadLabel}</button>
+      <span style="font-size:12px;color:var(--muted)" id="govStat_${key}"></span>
+    </div>
+  </div>`;
+}
+
+async function handleGovUpload(file,key,el){
+  const stat=document.getElementById('govStat_'+key);
+  if(stat) stat.textContent='Parsing '+file.name+'…';
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+    if(!rows.length) throw new Error('empty sheet');
+    const keys=Object.keys(rows[0]);
+    const find=(...n)=>keys.find(k=>{const s=k.toLowerCase().replace(/\s+/g,'');return n.some(x=>s.includes(x))});
+    const kStat=find('finalstatus','status','decision','result');
+    let selected=0,waiting=0,notSel=0,pending=0;
+    rows.forEach(r=>{
+      const s=String(kStat?r[kStat]:'').toLowerCase().trim();
+      if(/wait/.test(s)) waiting++;
+      else if(/not\s*selected|reject|decline|fail/.test(s)) notSel++;
+      else if(/selected|recommend|approved|cleared/.test(s)) selected++;
+      else pending++;
+    });
+    const requested=rows.length;
+    GOV[key]={requested,selected,waiting,notSelected:notSel,pending,hasData:true};
+    govSave(GOV);
+    renderGovernance(el);
+    toast((key==='etihad'?'Etihad WE':'TAQA')+' pool updated','ok');
+  }catch(e){console.error(e);if(stat)stat.textContent='Failed: '+e.message;toast('Upload failed: '+e.message,'err')}
+}
+
+async function exportGovPPT(){
+  try{
+    if(!window.PptxGenJS){toast('PPT library still loading…','err');return}
+    const pptx=new PptxGenJS();
+    pptx.layout='LAYOUT_WIDE';
+    const MAROON='800000', INK='140A0C', MUTED='6B6168';
+    const e=GOV.etihad, t=GOV.taqa;
+    const s1=pptx.addSlide();
+    s1.background={color:'FFFFFF'};
+    s1.addShape('rect',{x:0,y:0,w:13.333,h:0.55,fill:{color:MAROON},line:{color:MAROON}});
+    s1.addText('e& Enterprise · Governance Talent Pool',{x:0.4,y:0.07,w:12,h:0.42,fontSize:16,bold:true,color:'FFFFFF',fontFace:'Calibri'});
+    s1.addText('Governance Talent Pool',{x:0.5,y:0.85,w:12,h:0.6,fontSize:32,bold:true,color:INK,fontFace:'Calibri'});
+    s1.addText('Project allocation summary · '+new Date().toLocaleDateString(),{x:0.5,y:1.5,w:12,h:0.35,fontSize:14,color:MUTED,fontFace:'Calibri'});
+
+    const kpis=[
+      {l:'Total Candidates in Pool',v:GOV_POOL_TOTAL,n:'Governance-curated reserve'},
+      {l:'Total Requested (Etihad WE)',v:e.requested??'—',n:'Headcount asked by project'},
+      {l:'Selected for Etihad WE',v:e.selected??'—',n:(e.selected??'—')+' of '+(e.requested??'—')+' requested'}
+    ];
+    kpis.forEach((k,i)=>{
+      const x=0.5+i*4.2;
+      s1.addShape('rect',{x,y:2.2,w:4,h:1.8,fill:{color:'FFFFFF'},line:{color:'ECECEF',width:1}});
+      s1.addShape('rect',{x,y:2.2,w:0.06,h:1.8,fill:{color:MAROON},line:{color:MAROON}});
+      s1.addText(k.l,{x:x+0.25,y:2.3,w:3.7,h:0.3,fontSize:10,bold:true,color:MUTED,fontFace:'Calibri',charSpacing:2});
+      s1.addText(String(k.v),{x:x+0.25,y:2.65,w:3.7,h:0.8,fontSize:44,bold:true,color:INK,fontFace:'Calibri'});
+      s1.addText(k.n,{x:x+0.25,y:3.5,w:3.7,h:0.3,fontSize:11,color:MUTED,fontFace:'Calibri'});
+    });
+
+    const panels=[
+      {title:'Etihad WE Selection',sub:(e.requested||0)+' requested · '+(e.selected||0)+' selected',d:e,x:0.5},
+      {title:'TAQA Selection',sub:t.hasData?(t.requested+' requested · '+t.selected+' selected'):'Data pending — awaiting TAQA PM',d:t,x:6.85}
+    ];
+    panels.forEach(p=>{
+      s1.addShape('rect',{x:p.x,y:4.3,w:6,h:2.8,fill:{color:'FFFFFF'},line:{color:'ECECEF',width:1}});
+      s1.addShape('rect',{x:p.x,y:4.3,w:0.06,h:2.8,fill:{color:MAROON},line:{color:MAROON}});
+      s1.addText(p.title,{x:p.x+0.25,y:4.4,w:5.6,h:0.4,fontSize:18,bold:true,color:INK,fontFace:'Calibri'});
+      s1.addText(p.sub,{x:p.x+0.25,y:4.8,w:5.6,h:0.3,fontSize:11,color:MUTED,fontFace:'Calibri'});
+      const pct=(p.d.hasData&&p.d.requested)?Math.round(p.d.selected/p.d.requested*100):0;
+      s1.addShape('rect',{x:p.x+0.25,y:5.25,w:5.5,h:0.18,fill:{color:'F1F1F4'},line:{color:'F1F1F4'}});
+      if(pct>0) s1.addShape('rect',{x:p.x+0.25,y:5.25,w:5.5*pct/100,h:0.18,fill:{color:'16794C'},line:{color:'16794C'}});
+      s1.addText(pct+'% allocated',{x:p.x+0.25,y:5.45,w:5.5,h:0.3,fontSize:11,color:INK,bold:true,fontFace:'Calibri'});
+      const sts=[['Requested',p.d.requested],['Selected',p.d.selected],['Waiting',p.d.waiting],['Not Sel.',p.d.notSelected],['Pending',p.d.pending]];
+      sts.forEach((st,i)=>{
+        const sx=p.x+0.25+i*1.15;
+        s1.addText(String(st[1]??'—'),{x:sx,y:5.95,w:1.1,h:0.45,fontSize:18,bold:true,color:INK,fontFace:'Calibri'});
+        s1.addText(st[0],{x:sx,y:6.4,w:1.1,h:0.3,fontSize:9,color:MUTED,bold:true,fontFace:'Calibri',charSpacing:1});
+      });
+    });
+    s1.addText('© '+new Date().getFullYear()+' e& Enterprise · Governance Team',{x:0.4,y:7.1,w:12,h:0.3,fontSize:10,color:MUTED,fontFace:'Calibri'});
+    await pptx.writeFile({fileName:'Talent_Governance_Dashboard_'+new Date().toISOString().slice(0,10)+'.pptx'});
+    toast('Slide exported','ok');
+  }catch(e){console.error(e);toast('Export failed: '+e.message,'err')}
 }
 
 /* ---------- Boot ---------- */
