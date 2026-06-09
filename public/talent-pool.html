@@ -1082,12 +1082,28 @@ function exportPdf(rows){
 /* Governance Pool — unified Excel ingest (COMPANY = project, FINAL STATUS = outcome).
    Stored shape: { poolTotal:int, projects:{ [name]:{ screened, selected, waiting, notSelected, pending, requested } }, updatedAt } */
 const GOV_KEY='govPoolV2';
-function govLoad(){ try{const s=localStorage.getItem(GOV_KEY);if(s)return JSON.parse(s);}catch(e){} return {poolTotal:0,projects:{},updatedAt:null}; }
-function govSave(d){ try{localStorage.setItem(GOV_KEY,JSON.stringify(d))}catch(e){} }
-let GOV=govLoad();
+function govLocalLoad(){ try{const s=localStorage.getItem(GOV_KEY);if(s)return JSON.parse(s);}catch(e){} return {poolTotal:0,projects:{},updatedAt:null}; }
+function govLocalSave(d){ try{localStorage.setItem(GOV_KEY,JSON.stringify(d))}catch(e){} }
+let GOV=govLocalLoad();
+async function govCloudLoad(){
+  try{
+    const {data,error}=await sb.from('governance_state').select('data').eq('key','governance').maybeSingle();
+    if(error) throw error;
+    if(data&&data.data){GOV=data.data; govLocalSave(GOV); return true;}
+  }catch(e){console.warn('gov cloud load failed',e);}
+  return false;
+}
+async function govSave(d){
+  GOV=d; govLocalSave(d);
+  try{
+    const {error}=await sb.from('governance_state').upsert({key:'governance',data:d,updated_at:new Date().toISOString()},{onConflict:'key'});
+    if(error) throw error;
+  }catch(e){console.error('gov cloud save failed',e); toast('Cloud sync failed: '+e.message,'err');}
+}
 
 function renderGovernance(el){
   const isAdmin=state.user&&state.user.role==='admin';
+  if(!renderGovernance._loaded){renderGovernance._loaded=true; govCloudLoad().then(ok=>{ if(ok) renderGovernance(el); });}
   const projNames=Object.keys(GOV.projects);
   const totalReq=projNames.reduce((a,k)=>a+(Number(GOV.projects[k].requested)||0),0);
   const totalSel=projNames.reduce((a,k)=>a+(GOV.projects[k].selected||0),0);
@@ -1128,7 +1144,7 @@ function renderGovernance(el){
     document.getElementById('govUpBtn').onclick=()=>document.getElementById('govUpFile').click();
     document.getElementById('govUpFile').onchange=ev=>ev.target.files[0]&&handleGovUpload(ev.target.files[0],el);
     el.querySelectorAll('[data-reqedit]').forEach(inp=>{
-      inp.onchange=()=>{const n=inp.dataset.reqedit;const v=parseInt(inp.value,10);GOV.projects[n].requested=isNaN(v)?null:v;govSave(GOV);renderGovernance(el);toast('Requested updated for '+n,'ok');};
+      inp.onchange=async ()=>{const n=inp.dataset.reqedit;const v=parseInt(inp.value,10);GOV.projects[n].requested=isNaN(v)?null:v;await govSave(GOV);renderGovernance(el);toast('Requested updated for '+n+' · synced','ok');};
     });
   }
   document.getElementById('govExportPpt').onclick=exportGovPPT;
@@ -1192,9 +1208,9 @@ async function handleGovUpload(file,el){
       else projects[p].pending++;
     });
     GOV={poolTotal:rows.length,projects,updatedAt:new Date().toISOString()};
-    govSave(GOV);
+    await govSave(GOV);
     renderGovernance(el);
-    toast('Pool updated · '+rows.length+' candidates · '+Object.keys(projects).length+' projects','ok');
+    toast('Pool synced to cloud · '+rows.length+' candidates · '+Object.keys(projects).length+' projects','ok');
   }catch(e){console.error(e);toast('Upload failed: '+e.message,'err')}
 }
 

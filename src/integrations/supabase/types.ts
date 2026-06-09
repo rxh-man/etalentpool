@@ -98,6 +98,24 @@ export type Database = {
         }
         Relationships: []
       }
+      governance_state: {
+        Row: {
+          data: Json
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          data?: Json
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          data?: Json
+          key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       transformation_plan: {
         Row: {
           action: string
