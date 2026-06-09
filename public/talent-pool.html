@@ -1103,6 +1103,7 @@ async function govSave(d){
 
 function renderGovernance(el){
   const isAdmin=state.user&&state.user.role==='admin';
+  if(!renderGovernance._loaded){renderGovernance._loaded=true; govCloudLoad().then(ok=>{ if(ok) renderGovernance(el); });}
   const projNames=Object.keys(GOV.projects);
   const totalReq=projNames.reduce((a,k)=>a+(Number(GOV.projects[k].requested)||0),0);
   const totalSel=projNames.reduce((a,k)=>a+(GOV.projects[k].selected||0),0);
@@ -1143,7 +1144,7 @@ function renderGovernance(el){
     document.getElementById('govUpBtn').onclick=()=>document.getElementById('govUpFile').click();
     document.getElementById('govUpFile').onchange=ev=>ev.target.files[0]&&handleGovUpload(ev.target.files[0],el);
     el.querySelectorAll('[data-reqedit]').forEach(inp=>{
-      inp.onchange=()=>{const n=inp.dataset.reqedit;const v=parseInt(inp.value,10);GOV.projects[n].requested=isNaN(v)?null:v;govSave(GOV);renderGovernance(el);toast('Requested updated for '+n,'ok');};
+      inp.onchange=async ()=>{const n=inp.dataset.reqedit;const v=parseInt(inp.value,10);GOV.projects[n].requested=isNaN(v)?null:v;await govSave(GOV);renderGovernance(el);toast('Requested updated for '+n+' · synced','ok');};
     });
   }
   document.getElementById('govExportPpt').onclick=exportGovPPT;
@@ -1207,9 +1208,9 @@ async function handleGovUpload(file,el){
       else projects[p].pending++;
     });
     GOV={poolTotal:rows.length,projects,updatedAt:new Date().toISOString()};
-    govSave(GOV);
+    await govSave(GOV);
     renderGovernance(el);
-    toast('Pool updated · '+rows.length+' candidates · '+Object.keys(projects).length+' projects','ok');
+    toast('Pool synced to cloud · '+rows.length+' candidates · '+Object.keys(projects).length+' projects','ok');
   }catch(e){console.error(e);toast('Upload failed: '+e.message,'err')}
 }
 
