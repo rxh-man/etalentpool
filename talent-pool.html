@@ -1079,108 +1079,123 @@ function exportPdf(rows){
 }
 
 /* ---------- Governance Talent Pool ---------- */
-const GOV_POOL_TOTAL=97;
-const GOV_DEFAULTS={
-  etihad:{requested:88,selected:48,waiting:19,notSelected:22,pending:8,hasData:true},
-  taqa:{requested:null,selected:null,waiting:null,notSelected:null,pending:null,hasData:false}
-};
-function govLoad(){ try{const s=localStorage.getItem('govProjects');if(s)return Object.assign({},GOV_DEFAULTS,JSON.parse(s));}catch(e){} return GOV_DEFAULTS; }
-function govSave(d){ try{localStorage.setItem('govProjects',JSON.stringify(d))}catch(e){} }
+/* Governance Pool — unified Excel ingest (COMPANY = project, FINAL STATUS = outcome).
+   Stored shape: { poolTotal:int, projects:{ [name]:{ screened, selected, waiting, notSelected, pending, requested } }, updatedAt } */
+const GOV_KEY='govPoolV2';
+function govLoad(){ try{const s=localStorage.getItem(GOV_KEY);if(s)return JSON.parse(s);}catch(e){} return {poolTotal:0,projects:{},updatedAt:null}; }
+function govSave(d){ try{localStorage.setItem(GOV_KEY,JSON.stringify(d))}catch(e){} }
 let GOV=govLoad();
 
 function renderGovernance(el){
-  const e=GOV.etihad, t=GOV.taqa;
-  const selNote=(e.selected??'—')+' of '+(e.requested??'—')+' requested';
+  const isAdmin=state.user&&state.user.role==='admin';
+  const projNames=Object.keys(GOV.projects);
+  const totalReq=projNames.reduce((a,k)=>a+(Number(GOV.projects[k].requested)||0),0);
+  const totalSel=projNames.reduce((a,k)=>a+(GOV.projects[k].selected||0),0);
+  const totalScreened=projNames.reduce((a,k)=>a+(GOV.projects[k].screened||0),0);
+  const empty=GOV.poolTotal===0;
+  const story = empty
+    ? 'Upload the unified Governance Talent Pool sheet to begin. The sheet is auto-split by <b>COMPANY</b> into per-project stories using the <b>FINAL STATUS</b> column.'
+    : `From <b>${GOV.poolTotal}</b> candidates in the governance pool, <b>${totalScreened}</b> were screened across <b>${projNames.length}</b> project${projNames.length>1?'s':''}, and <b>${totalSel}</b> were selected${totalReq?` against <b>${totalReq}</b> requested headcount`:''}.`;
   el.innerHTML=`
   <div class="page-head">
     <div>
       <h1>Governance Talent Pool</h1>
-      <div class="sub">Unified governance-managed pool feeding multiple e&amp; projects. Upload an assessment sheet for any project to refresh allocation live.</div>
+      <div class="sub">${story}</div>
     </div>
-    <div class="actions">
+    <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
+      ${isAdmin?'<button class="btn btn-primary" id="govUpBtn" style="padding:9px 16px;font-size:13px">⤴ Upload Unified Pool</button>':''}
       <button class="btn" id="govExportPpt" style="border:1px solid var(--maroon);color:var(--maroon);background:#fff;padding:9px 16px;border-radius:6px;font-weight:600;font-size:13px">Export Slide ↓</button>
     </div>
   </div>
-  <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
-    <div class="kpi"><div class="label">Total Candidates in Pool</div><div class="value">${GOV_POOL_TOTAL}</div><div class="meta">Governance-curated talent reserve</div></div>
-    <div class="kpi"><div class="label">Total Requested (Etihad WE)</div><div class="value">${e.requested??'—'}</div><div class="meta">Headcount asked by project</div></div>
-    <div class="kpi green"><div class="label">Selected for Etihad WE</div><div class="value">${e.selected??'—'}</div><div class="meta">${selNote}</div></div>
+  <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi"><div class="label">Total Pool</div><div class="value">${GOV.poolTotal||'—'}</div><div class="meta">Governance-curated reserve</div></div>
+    <div class="kpi"><div class="label">Projects Served</div><div class="value">${projNames.length||'—'}</div><div class="meta">${projNames.join(' · ')||'No data yet'}</div></div>
+    <div class="kpi"><div class="label">Total Requested</div><div class="value">${totalReq||'—'}</div><div class="meta">Admin-entered headcount</div></div>
+    <div class="kpi green"><div class="label">Total Selected</div><div class="value">${totalSel||'—'}</div><div class="meta">${totalReq?Math.round(totalSel/totalReq*100)+'% of requested':totalScreened+' screened'}</div></div>
   </div>
-  <div class="gov-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px">
-    ${govPanelHTML('etihad',e)}
-    ${govPanelHTML('taqa',t)}
-  </div>
-  <input type="file" id="govUpEtihad" accept=".xlsx,.xls,.csv" style="display:none" />
-  <input type="file" id="govUpTaqa" accept=".xlsx,.xls,.csv" style="display:none" />
+  ${empty?`<div class="card" style="padding:36px;margin-top:18px;text-align:center;color:var(--muted)">
+    <div style="font-size:42px;margin-bottom:8px">📥</div>
+    <h3 style="color:var(--ink);margin:0 0 6px">No governance data yet</h3>
+    <div style="font-size:13.5px">Upload an Excel with columns <b>COMPANY</b> (project name) and <b>FINAL STATUS</b> (Selected / Waiting List / Not Selected). Each project will appear here automatically.</div>
+  </div>`:`
+  <div class="gov-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:18px;margin-top:18px">
+    ${projNames.map(n=>govPanelHTML(n,GOV.projects[n],isAdmin)).join('')}
+  </div>`}
+  <input type="file" id="govUpFile" accept=".xlsx,.xls,.csv" style="display:none" />
   <style>@media(max-width:768px){.gov-grid{grid-template-columns:1fr!important}}</style>
   `;
-  el.querySelectorAll('[data-govup]').forEach(b=>b.onclick=()=>document.getElementById(b.dataset.govup==='etihad'?'govUpEtihad':'govUpTaqa').click());
-  document.getElementById('govUpEtihad').onchange=ev=>ev.target.files[0]&&handleGovUpload(ev.target.files[0],'etihad',el);
-  document.getElementById('govUpTaqa').onchange=ev=>ev.target.files[0]&&handleGovUpload(ev.target.files[0],'taqa',el);
+  if(isAdmin){
+    document.getElementById('govUpBtn').onclick=()=>document.getElementById('govUpFile').click();
+    document.getElementById('govUpFile').onchange=ev=>ev.target.files[0]&&handleGovUpload(ev.target.files[0],el);
+    el.querySelectorAll('[data-reqedit]').forEach(inp=>{
+      inp.onchange=()=>{const n=inp.dataset.reqedit;const v=parseInt(inp.value,10);GOV.projects[n].requested=isNaN(v)?null:v;govSave(GOV);renderGovernance(el);toast('Requested updated for '+n,'ok');};
+    });
+  }
   document.getElementById('govExportPpt').onclick=exportGovPPT;
 }
 
-function govPanelHTML(key,d){
-  const isE=key==='etihad';
-  const title=isE?'Etihad WE Selection':'TAQA Selection';
-  const sub=isE?`${d.requested??'—'} candidates requested · ${d.selected??'—'} selected from pool`:'Data pending — awaiting update from TAQA Project Manager';
-  const pct=(d.hasData&&d.requested)?Math.round((d.selected||0)/d.requested*100):0;
-  const barColor=isE?'var(--green)':'#c9c9d0';
-  const stats=[['Requested',d.requested],['Selected',d.selected],['Waiting List',d.waiting],['Not Selected',d.notSelected],['Pending',d.pending]];
-  const uploadLabel=isE?'Upload Etihad WE Assessment':'Upload TAQA Assessment';
-  const banner=isE?'':`<div style="background:var(--amber-bg);border:1px solid #f0d894;color:var(--amber);padding:10px 14px;border-radius:6px;font-size:13px;margin:0 0 14px;font-weight:500">⏳ Pending submission from TAQA Project Manager</div>`;
+function govPanelHTML(name,d,isAdmin){
+  const req=d.requested, sel=d.selected||0;
+  const pct=req?Math.min(100,Math.round(sel/req*100)):0;
+  const stats=[['Screened',d.screened],['Selected',d.selected],['Waiting',d.waiting],['Not Selected',d.notSelected],['Pending',d.pending]];
+  const story=req
+    ? `Project requested <b>${req}</b> resources. We screened <b>${d.screened}</b> from the pool and <b>${sel}</b> were selected — <b>${pct}%</b> of the ask is fulfilled.`
+    : `<b>${d.screened}</b> candidates screened from the pool · <b>${sel}</b> selected. <span style="color:var(--amber)">Set "Requested" to complete the story.</span>`;
+  const reqCell=isAdmin
+    ? `<input data-reqedit="${esc(name)}" type="number" min="0" value="${req??''}" placeholder="—" style="width:70px;font-family:'Sora';font-size:20px;font-weight:700;color:var(--ink);border:1px dashed var(--line);border-radius:4px;padding:2px 6px;background:#fffbe9" title="Click to edit requested headcount" />`
+    : `<div style="font-family:'Sora';font-size:20px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums">${req??'—'}</div>`;
   return `
   <div class="card" style="padding:24px 26px;position:relative;overflow:hidden;display:flex;flex-direction:column">
     <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--maroon)"></div>
     <div style="font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-weight:700">Project</div>
-    <h3 style="font-size:22px;font-weight:700;margin:6px 0 6px;color:var(--ink)">${title}</h3>
-    <div style="font-size:13.5px;color:var(--muted);line-height:1.5;margin-bottom:16px">${sub}</div>
-    ${banner}
+    <h3 style="font-size:22px;font-weight:700;margin:6px 0 6px;color:var(--ink)">${esc(name)}</h3>
+    <div style="font-size:13.5px;color:var(--muted);line-height:1.55;margin-bottom:16px">${story}</div>
     <div style="margin:0 0 18px">
       <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px">
-        <span>${d.hasData?`${d.selected}/${d.requested} allocated`:'Awaiting data'}</span>
-        <span style="color:${isE?'var(--green)':'var(--muted)'}">${d.hasData?pct+'%':'—'}</span>
+        <span>${req?`${sel}/${req} allocated`:`${sel} selected · awaiting request count`}</span>
+        <span style="color:var(--green)">${req?pct+'%':'—'}</span>
       </div>
       <div style="height:10px;background:#f1eaeb;border-radius:6px;overflow:hidden">
-        <div style="height:100%;width:${pct}%;background:${barColor};border-radius:6px;transition:width .4s"></div>
+        <div style="height:100%;width:${pct}%;background:var(--green);border-radius:6px;transition:width .4s"></div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:18px">
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:6px">
+      <div>${reqCell}<div style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px;font-weight:600">Requested</div></div>
       ${stats.map(([l,v])=>`<div><div style="font-family:'Sora';font-size:20px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums">${v??'—'}</div><div style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px;font-weight:600">${l}</div></div>`).join('')}
-    </div>
-    <div style="margin-top:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <button data-govup="${key}" class="btn btn-primary" style="padding:10px 18px;font-size:13px">⤴ ${uploadLabel}</button>
-      <span style="font-size:12px;color:var(--muted)" id="govStat_${key}"></span>
     </div>
   </div>`;
 }
 
-async function handleGovUpload(file,key,el){
-  const stat=document.getElementById('govStat_'+key);
-  if(stat) stat.textContent='Parsing '+file.name+'…';
+async function handleGovUpload(file,el){
   try{
+    toast('Parsing '+file.name+'…','ok');
     const buf=await file.arrayBuffer();
     const wb=XLSX.read(buf,{type:'array'});
     const ws=wb.Sheets[wb.SheetNames[0]];
     const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
     if(!rows.length) throw new Error('empty sheet');
     const keys=Object.keys(rows[0]);
-    const find=(...n)=>keys.find(k=>{const s=k.toLowerCase().replace(/\s+/g,'');return n.some(x=>s.includes(x))});
-    const kStat=find('finalstatus','status','decision','result');
-    let selected=0,waiting=0,notSel=0,pending=0;
+    const find=(...n)=>keys.find(k=>{const s=k.toLowerCase().replace(/[\s_]+/g,'');return n.some(x=>s.includes(x))});
+    const kProj=find('company','project','client','requestedby','screenedfor','recommendedfor');
+    const kStat=find('finalstatus','status','decision','result','outcome');
+    if(!kProj) throw new Error('No project column found (expected COMPANY / Project)');
+    if(!kStat) throw new Error('No status column found (expected FINAL STATUS)');
+    const projects={};
     rows.forEach(r=>{
-      const s=String(kStat?r[kStat]:'').toLowerCase().trim();
-      if(/wait/.test(s)) waiting++;
-      else if(/not\s*selected|reject|decline|fail/.test(s)) notSel++;
-      else if(/selected|recommend|approved|cleared/.test(s)) selected++;
-      else pending++;
+      const p=String(r[kProj]||'').trim()||'Unassigned';
+      if(!projects[p]) projects[p]={screened:0,selected:0,waiting:0,notSelected:0,pending:0,requested:(GOV.projects[p]&&GOV.projects[p].requested)??null};
+      projects[p].screened++;
+      const s=String(r[kStat]||'').toLowerCase().trim();
+      if(/not\s*selected|reject|decline|fail/.test(s)) projects[p].notSelected++;
+      else if(/wait/.test(s)) projects[p].waiting++;
+      else if(/selected|recommend|approved|cleared|short.?list/.test(s)) projects[p].selected++;
+      else projects[p].pending++;
     });
-    const requested=rows.length;
-    GOV[key]={requested,selected,waiting,notSelected:notSel,pending,hasData:true};
+    GOV={poolTotal:rows.length,projects,updatedAt:new Date().toISOString()};
     govSave(GOV);
     renderGovernance(el);
-    toast((key==='etihad'?'Etihad WE':'TAQA')+' pool updated','ok');
-  }catch(e){console.error(e);if(stat)stat.textContent='Failed: '+e.message;toast('Upload failed: '+e.message,'err')}
+    toast('Pool updated · '+rows.length+' candidates · '+Object.keys(projects).length+' projects','ok');
+  }catch(e){console.error(e);toast('Upload failed: '+e.message,'err')}
 }
 
 async function exportGovPPT(){
@@ -1189,7 +1204,9 @@ async function exportGovPPT(){
     const pptx=new PptxGenJS();
     pptx.layout='LAYOUT_WIDE';
     const MAROON='800000', INK='140A0C', MUTED='6B6168';
-    const e=GOV.etihad, t=GOV.taqa;
+    const projNames=Object.keys(GOV.projects);
+    const totalReq=projNames.reduce((a,k)=>a+(Number(GOV.projects[k].requested)||0),0);
+    const totalSel=projNames.reduce((a,k)=>a+(GOV.projects[k].selected||0),0);
     const s1=pptx.addSlide();
     s1.background={color:'FFFFFF'};
     s1.addShape('rect',{x:0,y:0,w:13.333,h:0.55,fill:{color:MAROON},line:{color:MAROON}});
@@ -1198,9 +1215,9 @@ async function exportGovPPT(){
     s1.addText('Project allocation summary · '+new Date().toLocaleDateString(),{x:0.5,y:1.5,w:12,h:0.35,fontSize:14,color:MUTED,fontFace:'Calibri'});
 
     const kpis=[
-      {l:'Total Candidates in Pool',v:GOV_POOL_TOTAL,n:'Governance-curated reserve'},
-      {l:'Total Requested (Etihad WE)',v:e.requested??'—',n:'Headcount asked by project'},
-      {l:'Selected for Etihad WE',v:e.selected??'—',n:(e.selected??'—')+' of '+(e.requested??'—')+' requested'}
+      {l:'Total Pool',v:GOV.poolTotal||'—',n:'Governance-curated reserve'},
+      {l:'Total Requested',v:totalReq||'—',n:'Across '+projNames.length+' projects'},
+      {l:'Total Selected',v:totalSel||'—',n:totalReq?Math.round(totalSel/Math.max(totalReq,1)*100)+'% of requested':'—'}
     ];
     kpis.forEach((k,i)=>{
       const x=0.5+i*4.2;
@@ -1211,20 +1228,17 @@ async function exportGovPPT(){
       s1.addText(k.n,{x:x+0.25,y:3.5,w:3.7,h:0.3,fontSize:11,color:MUTED,fontFace:'Calibri'});
     });
 
-    const panels=[
-      {title:'Etihad WE Selection',sub:(e.requested||0)+' requested · '+(e.selected||0)+' selected',d:e,x:0.5},
-      {title:'TAQA Selection',sub:t.hasData?(t.requested+' requested · '+t.selected+' selected'):'Data pending — awaiting TAQA PM',d:t,x:6.85}
-    ];
+    const panels=projNames.slice(0,2).map((n,i)=>({title:n,sub:((GOV.projects[n].requested||0)+' requested · '+(GOV.projects[n].selected||0)+' selected · '+(GOV.projects[n].screened||0)+' screened'),d:GOV.projects[n],x:0.5+i*6.35}));
     panels.forEach(p=>{
       s1.addShape('rect',{x:p.x,y:4.3,w:6,h:2.8,fill:{color:'FFFFFF'},line:{color:'ECECEF',width:1}});
       s1.addShape('rect',{x:p.x,y:4.3,w:0.06,h:2.8,fill:{color:MAROON},line:{color:MAROON}});
       s1.addText(p.title,{x:p.x+0.25,y:4.4,w:5.6,h:0.4,fontSize:18,bold:true,color:INK,fontFace:'Calibri'});
       s1.addText(p.sub,{x:p.x+0.25,y:4.8,w:5.6,h:0.3,fontSize:11,color:MUTED,fontFace:'Calibri'});
-      const pct=(p.d.hasData&&p.d.requested)?Math.round(p.d.selected/p.d.requested*100):0;
+      const pct=p.d.requested?Math.round((p.d.selected||0)/p.d.requested*100):0;
       s1.addShape('rect',{x:p.x+0.25,y:5.25,w:5.5,h:0.18,fill:{color:'F1F1F4'},line:{color:'F1F1F4'}});
       if(pct>0) s1.addShape('rect',{x:p.x+0.25,y:5.25,w:5.5*pct/100,h:0.18,fill:{color:'16794C'},line:{color:'16794C'}});
       s1.addText(pct+'% allocated',{x:p.x+0.25,y:5.45,w:5.5,h:0.3,fontSize:11,color:INK,bold:true,fontFace:'Calibri'});
-      const sts=[['Requested',p.d.requested],['Selected',p.d.selected],['Waiting',p.d.waiting],['Not Sel.',p.d.notSelected],['Pending',p.d.pending]];
+      const sts=[['Req.',p.d.requested],['Screened',p.d.screened],['Selected',p.d.selected],['Waiting',p.d.waiting],['Not Sel.',p.d.notSelected]];
       sts.forEach((st,i)=>{
         const sx=p.x+0.25+i*1.15;
         s1.addText(String(st[1]??'—'),{x:sx,y:5.95,w:1.1,h:0.45,fontSize:18,bold:true,color:INK,fontFace:'Calibri'});
