@@ -1146,6 +1146,9 @@ function renderGovernance(el){
     el.querySelectorAll('[data-reqedit]').forEach(inp=>{
       inp.onchange=async ()=>{const n=inp.dataset.reqedit;const v=parseInt(inp.value,10);GOV.projects[n].requested=isNaN(v)?null:v;await govSave(GOV);renderGovernance(el);toast('Requested updated for '+n+' · synced','ok');};
     });
+    el.querySelectorAll('[data-seledit]').forEach(inp=>{
+      inp.onchange=async ()=>{const n=inp.dataset.seledit;const v=parseInt(inp.value,10);GOV.projects[n].selected=isNaN(v)?0:v;await govSave(GOV);renderGovernance(el);toast('Selected updated for '+n+' · synced','ok');};
+    });
   }
   document.getElementById('govExportPpt').onclick=exportGovPPT;
 }
