@@ -1146,6 +1146,9 @@ function renderGovernance(el){
     el.querySelectorAll('[data-reqedit]').forEach(inp=>{
       inp.onchange=async ()=>{const n=inp.dataset.reqedit;const v=parseInt(inp.value,10);GOV.projects[n].requested=isNaN(v)?null:v;await govSave(GOV);renderGovernance(el);toast('Requested updated for '+n+' · synced','ok');};
     });
+    el.querySelectorAll('[data-seledit]').forEach(inp=>{
+      inp.onchange=async ()=>{const n=inp.dataset.seledit;const v=parseInt(inp.value,10);GOV.projects[n].selected=isNaN(v)?0:v;await govSave(GOV);renderGovernance(el);toast('Selected updated for '+n+' · synced','ok');};
+    });
   }
   document.getElementById('govExportPpt').onclick=exportGovPPT;
 }
@@ -1153,13 +1156,14 @@ function renderGovernance(el){
 function govPanelHTML(name,d,isAdmin){
   const req=d.requested, sel=d.selected||0;
   const pct=req?Math.min(100,Math.round(sel/req*100)):0;
-  const stats=[['Screened',d.screened],['Selected',d.selected],['Waiting',d.waiting],['Not Selected',d.notSelected],['Pending',d.pending]];
+  const stats=[['Screened',d.screened,null],['__SELECTED__',d.selected,'selected'],['Waiting',d.waiting,null],['Not Selected',d.notSelected,null],['Pending',d.pending,null]];
   const story=req
     ? `Project requested <b>${req}</b> resources. We screened <b>${d.screened}</b> from the pool and <b>${sel}</b> were selected — <b>${pct}%</b> of the ask is fulfilled.`
     : `<b>${d.screened}</b> candidates screened from the pool · <b>${sel}</b> selected. <span style="color:var(--amber)">Set "Requested" to complete the story.</span>`;
   const reqCell=isAdmin
     ? `<input data-reqedit="${esc(name)}" type="number" min="0" value="${req??''}" placeholder="—" style="width:70px;font-family:'Sora';font-size:20px;font-weight:700;color:var(--ink);border:1px dashed var(--line);border-radius:4px;padding:2px 6px;background:#fffbe9" title="Click to edit requested headcount" />`
     : `<div style="font-family:'Sora';font-size:20px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums">${req??'—'}</div>`;
+  const selEditor=(v)=>`<input data-seledit="${esc(name)}" type="number" min="0" value="${v??''}" placeholder="—" style="width:70px;font-family:'Sora';font-size:20px;font-weight:700;color:var(--ink);border:1px dashed var(--line);border-radius:4px;padding:2px 6px;background:#fffbe9" title="Click to edit selected count" />`;
   return `
   <div class="card" style="padding:24px 26px;position:relative;overflow:hidden;display:flex;flex-direction:column">
     <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--maroon)"></div>
@@ -1177,7 +1181,7 @@ function govPanelHTML(name,d,isAdmin){
     </div>
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:6px">
       <div>${reqCell}<div style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px;font-weight:600">Requested</div></div>
-      ${stats.map(([l,v])=>`<div><div style="font-family:'Sora';font-size:20px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums">${v??'—'}</div><div style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px;font-weight:600">${l}</div></div>`).join('')}
+      ${stats.map(([l,v,k])=>{const label=l==='__SELECTED__'?'Selected':l;const cell=(isAdmin&&k==='selected')?selEditor(v):`<div style="font-family:'Sora';font-size:20px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums">${v??'—'}</div>`;return `<div>${cell}<div style="font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px;font-weight:600">${label}</div></div>`;}).join('')}
     </div>
   </div>`;
 }
